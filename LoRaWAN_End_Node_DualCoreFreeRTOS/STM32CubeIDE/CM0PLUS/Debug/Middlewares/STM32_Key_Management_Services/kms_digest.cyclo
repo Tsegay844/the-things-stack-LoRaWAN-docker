@@ -1,0 +1,4 @@
+kms_digest.c:87:11:KMS_DigestInit	1
+kms_digest.c:214:9:KMS_Digest	1
+kms_digest.c:322:9:KMS_DigestUpdate	1
+kms_digest.c:404:9:KMS_DigestFinal	1

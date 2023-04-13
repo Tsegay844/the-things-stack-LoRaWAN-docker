@@ -1,0 +1,7 @@
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/kms_low_level.c:74:7:KMS_LL_Initialize	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/kms_low_level.c:85:7:KMS_LL_Finalize	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/kms_low_level.c:100:7:KMS_LL_FLASH_Read	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/kms_low_level.c:162:6:KMS_LL_ReportError	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/kms_low_level.c:172:6:KMS_LL_ReportMemInit	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/kms_low_level.c:184:6:KMS_LL_ReportMemAlloc	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/kms_low_level.c:195:6:KMS_LL_ReportMemFree	0	static

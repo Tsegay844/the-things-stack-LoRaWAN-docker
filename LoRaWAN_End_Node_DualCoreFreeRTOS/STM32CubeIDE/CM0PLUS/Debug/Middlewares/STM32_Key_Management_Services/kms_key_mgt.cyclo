@@ -1,0 +1,2 @@
+kms_key_mgt.c:143:16:KMS_DeriveKey	23
+kms_key_mgt.c:517:7:KMS_GenerateKeyPair	1

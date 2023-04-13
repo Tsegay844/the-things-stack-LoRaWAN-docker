@@ -1,0 +1,15 @@
+mbmuxif_sys.c:318:13:MBMUXIF_IsrSystemPrioAAckRcvCb	1
+mbmuxif_sys.c:325:13:MBMUXIF_IsrSystemPrioACmdRcvCb	1
+mbmuxif_sys.c:332:13:MBMUXIF_IsrSystemPrioBAckRcvCb	1
+mbmuxif_sys.c:339:13:MBMUXIF_IsrSystemPrioBCmdRcvCb	1
+mbmuxif_sys.c:346:15:MBMUXIF_FeatureCm0plusRegistrationCmd	10
+mbmuxif_sys.c:297:13:MBMUXIF_TaskSystemCmdRcv	2
+mbmuxif_sys.c:266:13:MBMUXIF_IsrSystemCmdRcvCb	2
+mbmuxif_sys.c:255:13:MBMUXIF_IsrSystemAckRcvCb	1
+mbmuxif_sys.c:120:8:MBMUXIF_SystemInit	5
+mbmuxif_sys.c:166:10:MBMUXIF_GetCpusSynchroFlag	1
+mbmuxif_sys.c:174:19:MBMUXIF_GetSystemFeatureNotifComPtr	2
+mbmuxif_sys.c:190:6:MBMUXIF_SystemSendNotif	2
+mbmuxif_sys.c:208:6:MBMUXIF_SystemSendNotif_NoWait	2
+mbmuxif_sys.c:222:6:MBMUXIF_SystemSendResp	2
+mbmuxif_sys.c:241:9:MBMUXIF_ChipRevId	1

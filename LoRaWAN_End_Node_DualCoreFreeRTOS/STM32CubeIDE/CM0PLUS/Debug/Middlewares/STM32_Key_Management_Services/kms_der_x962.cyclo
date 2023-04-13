@@ -1,0 +1,4 @@
+kms_der_x962.c:52:7:KMS_DerX962_OctetStringLength	5
+kms_der_x962.c:103:7:KMS_DerX962_OctetStringDataOffset	3
+kms_der_x962.c:142:7:KMS_DerX962_ExtractPublicKeyCoord	3
+kms_der_x962.c:174:7:KMS_DerX962_ConstructDERPublicKeyCoord	6

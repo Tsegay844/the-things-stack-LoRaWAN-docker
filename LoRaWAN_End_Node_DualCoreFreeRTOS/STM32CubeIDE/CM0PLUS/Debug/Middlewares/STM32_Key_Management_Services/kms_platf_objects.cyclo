@@ -1,0 +1,13 @@
+kms_platf_objects.c:178:13:KMS_PlatfObjects_NvmStaticObjectList	4
+kms_platf_objects.c:208:13:KMS_PlatfObjects_NvmDynamicObjectList	4
+kms_platf_objects.c:489:6:KMS_PlatfObjects_EmbeddedRange	1
+kms_platf_objects.c:500:20:KMS_PlatfObjects_EmbeddedObject	1
+kms_platf_objects.c:512:6:KMS_PlatfObjects_NvmStaticRange	1
+kms_platf_objects.c:525:20:KMS_PlatfObjects_NvmStaticObject	1
+kms_platf_objects.c:594:6:KMS_PlatfObjects_NvmDynamicRange	1
+kms_platf_objects.c:607:20:KMS_PlatfObjects_NvmDynamicObject	1
+kms_platf_objects.c:802:6:KMS_PlatfObjects_Init	2
+kms_platf_objects.c:837:6:KMS_PlatfObjects_Finalize	1
+kms_platf_objects.c:866:7:KMS_PlatfObjects_NvmStoreObject	5
+kms_platf_objects.c:705:7:KMS_PlatfObjects_AllocateAndStore	7
+kms_platf_objects.c:992:7:KMS_PlatfObjects_NvmRemoveObject	4

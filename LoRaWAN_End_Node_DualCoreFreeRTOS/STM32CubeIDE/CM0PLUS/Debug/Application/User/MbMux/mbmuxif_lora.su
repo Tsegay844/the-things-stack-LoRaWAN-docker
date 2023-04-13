@@ -1,0 +1,7 @@
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/mbmuxif_lora.c:183:13:MBMUXIF_TaskLoraCmdRcv	8	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/mbmuxif_lora.c:171:13:MBMUXIF_IsrLoraCmdRcvCb	8	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/mbmuxif_lora.c:160:13:MBMUXIF_IsrLoraAckRcvCb	8	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/mbmuxif_lora.c:81:8:MBMUXIF_LoraInit	8	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/mbmuxif_lora.c:105:19:MBMUXIF_GetLoraFeatureNotifComPtr	8	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/mbmuxif_lora.c:121:6:MBMUXIF_LoraSendNotif	8	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/mbmuxif_lora.c:141:6:MBMUXIF_LoraSendResp	8	static

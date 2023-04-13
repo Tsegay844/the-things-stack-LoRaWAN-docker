@@ -1,0 +1,17 @@
+kms_objects.c:825:18:KMS_Objects_GetRange	7
+kms_objects.c:920:8:KMS_LockKeyHandle	1
+kms_objects.c:963:8:KMS_CheckKeyIsNotLocked	1
+kms_objects.c:760:20:KMS_Objects_GetPointer	9
+kms_objects.c:991:8:KMS_LockServiceFctId	1
+kms_objects.c:1034:8:KMS_CheckServiceFctIdIsNotLocked	1
+kms_objects.c:1065:7:KMS_FindAttributeInTemplate	6
+kms_objects.c:1280:7:KMS_Objects_SearchAttributes	4
+kms_objects.c:1103:7:KMS_FindObjectsFromTemplate	17
+kms_objects.c:1326:6:KMS_Objects_u8ptr_2_BlobU32	6
+kms_objects.c:1376:7:KMS_Objects_BlobU32_2_u8ptr	6
+kms_objects.c:1435:8:KMS_Objects_ImportBlob	1
+kms_objects.c:1514:7:KMS_Objects_LockKeys	1
+kms_objects.c:1539:7:KMS_Objects_LockServices	1
+kms_objects.c:1570:7:KMS_Objects_CreateNStoreBlobFromTemplates	19
+kms_objects.c:1676:7:KMS_Objects_CreateNStoreBlobForAES	9
+kms_objects.c:1750:7:KMS_Objects_CreateNStoreBlobForECCPair	18

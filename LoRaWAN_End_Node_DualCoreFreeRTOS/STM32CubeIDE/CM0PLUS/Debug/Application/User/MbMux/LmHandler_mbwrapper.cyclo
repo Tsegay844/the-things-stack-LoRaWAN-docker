@@ -1,0 +1,17 @@
+LmHandler_mbwrapper.c:1009:13:OnSystemReset_mbwrapper	1
+LmHandler_mbwrapper.c:985:13:OnPingSlotPeriodicityChanged_mbwrapper	1
+LmHandler_mbwrapper.c:962:13:OnTxFrameCtrlChanged_mbwrapper	1
+LmHandler_mbwrapper.c:938:13:OnTxPeriodicityChanged_mbwrapper	1
+LmHandler_mbwrapper.c:918:13:OnSysTimeUpdate_mbwrapper	1
+LmHandler_mbwrapper.c:858:13:OnClassChange_mbwrapper	1
+LmHandler_mbwrapper.c:637:13:OnNvmDataChange_mbwrapper	1
+LmHandler_mbwrapper.c:612:13:OnStoreContextRequest_mbwrapper	1
+LmHandler_mbwrapper.c:587:13:OnRestoreContextRequest_mbwrapper	1
+LmHandler_mbwrapper.c:567:16:GetTemperatureLevel_mbwrapper	1
+LmHandler_mbwrapper.c:542:16:GetBatteryLevel_mbwrapper	1
+LmHandler_mbwrapper.c:882:13:OnBeaconStatusChange_mbwrapper	3
+LmHandler_mbwrapper.c:787:13:OnRxData_mbwrapper	7
+LmHandler_mbwrapper.c:741:13:OnTxData_mbwrapper	4
+LmHandler_mbwrapper.c:697:13:OnJoinRequest_mbwrapper	4
+LmHandler_mbwrapper.c:661:13:OnNetworkParametersChange_mbwrapper	3
+LmHandler_mbwrapper.c:161:6:Process_Lora_Cmd	52

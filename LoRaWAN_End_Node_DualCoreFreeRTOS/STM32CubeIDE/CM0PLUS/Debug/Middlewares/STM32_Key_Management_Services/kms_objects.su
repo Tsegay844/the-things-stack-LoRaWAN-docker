@@ -1,0 +1,17 @@
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:825:18:KMS_Objects_GetRange	16	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:920:8:KMS_LockKeyHandle	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:963:8:KMS_CheckKeyIsNotLocked	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:760:20:KMS_Objects_GetPointer	24	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:991:8:KMS_LockServiceFctId	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1034:8:KMS_CheckServiceFctIdIsNotLocked	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1065:7:KMS_FindAttributeInTemplate	16	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1280:7:KMS_Objects_SearchAttributes	16	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1103:7:KMS_FindObjectsFromTemplate	88	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1326:6:KMS_Objects_u8ptr_2_BlobU32	20	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1376:7:KMS_Objects_BlobU32_2_u8ptr	20	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1435:8:KMS_Objects_ImportBlob	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1514:7:KMS_Objects_LockKeys	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1539:7:KMS_Objects_LockServices	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1570:7:KMS_Objects_CreateNStoreBlobFromTemplates	48	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1676:7:KMS_Objects_CreateNStoreBlobForAES	72	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c:1750:7:KMS_Objects_CreateNStoreBlobForECCPair	104	static

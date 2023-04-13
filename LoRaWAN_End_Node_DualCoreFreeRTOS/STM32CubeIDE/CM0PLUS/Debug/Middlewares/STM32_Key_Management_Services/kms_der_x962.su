@@ -1,0 +1,4 @@
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_der_x962.c:52:7:KMS_DerX962_OctetStringLength	12	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_der_x962.c:103:7:KMS_DerX962_OctetStringDataOffset	8	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_der_x962.c:142:7:KMS_DerX962_ExtractPublicKeyCoord	40	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_der_x962.c:174:7:KMS_DerX962_ConstructDERPublicKeyCoord	24	static

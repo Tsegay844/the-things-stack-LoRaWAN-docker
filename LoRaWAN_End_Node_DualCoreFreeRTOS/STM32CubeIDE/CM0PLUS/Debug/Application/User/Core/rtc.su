@@ -1,0 +1,3 @@
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/rtc.c:30:6:MX_RTC_Init	56	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/rtc.c:94:6:HAL_RTC_MspInit	72	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/rtc.c:127:6:HAL_RTC_MspDeInit	8	static

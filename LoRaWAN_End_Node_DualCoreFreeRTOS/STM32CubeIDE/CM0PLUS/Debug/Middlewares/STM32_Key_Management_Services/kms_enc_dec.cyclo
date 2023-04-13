@@ -1,0 +1,9 @@
+kms_enc_dec.c:135:14:encrypt_decrypt_init	51
+kms_enc_dec.c:774:16:KMS_EncryptInit	1
+kms_enc_dec.c:848:16:KMS_EncryptUpdate	13
+kms_enc_dec.c:802:16:KMS_Encrypt	2
+kms_enc_dec.c:1016:16:KMS_EncryptFinal	13
+kms_enc_dec.c:1168:16:KMS_DecryptInit	1
+kms_enc_dec.c:1238:16:KMS_DecryptUpdate	17
+kms_enc_dec.c:1192:16:KMS_Decrypt	2
+kms_enc_dec.c:1446:16:KMS_DecryptFinal	13

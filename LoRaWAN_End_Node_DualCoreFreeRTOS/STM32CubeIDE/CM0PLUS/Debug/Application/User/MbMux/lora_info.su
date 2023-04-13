@@ -1,0 +1,3 @@
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/lora_info.c:151:13:LoraInfo_GetPtr	0	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/lora_info.c:164:6:StoreValueInFeatureListTable	16	static
+C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/MbMux/lora_info.c:75:6:LoraInfo_Init	8	static
