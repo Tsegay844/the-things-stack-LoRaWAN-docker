@@ -1,7 +1,0 @@
-mbmuxif_trace.c:171:32:MBMUXIF_TraceBufferInit	1
-mbmuxif_trace.c:222:13:MBMUXIF_TaskTraceAckRcv	1
-mbmuxif_trace.c:210:13:MBMUXIF_IsrTraceAckRcvCb	1
-mbmuxif_trace.c:108:8:MBMUXIF_TraceInit	2
-mbmuxif_trace.c:136:19:MBMUXIF_GetTraceFeatureNotifComPtr	2
-mbmuxif_trace.c:152:6:MBMUXIF_TraceSendNotif_NoWait	2
-mbmuxif_trace.c:183:32:MBMUXIF_TraceBufferSend	2

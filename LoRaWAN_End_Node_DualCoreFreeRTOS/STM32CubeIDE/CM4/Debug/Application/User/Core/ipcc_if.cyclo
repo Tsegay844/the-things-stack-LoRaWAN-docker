@@ -1,7 +1,0 @@
-ipcc_if.c:171:13:IpccIfIsrTxCb	1
-ipcc_if.c:186:13:IpccIfIsrRxCb	1
-ipcc_if.c:78:6:IPCC_IF_Init	2
-ipcc_if.c:107:10:IPCC_IF_CmdRespStatus	1
-ipcc_if.c:118:10:IPCC_IF_NotifAckStatus	1
-ipcc_if.c:129:9:IPCC_IF_CommandSnd	2
-ipcc_if.c:147:9:IPCC_IF_AcknowledgeSnd	2

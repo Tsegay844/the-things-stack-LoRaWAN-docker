@@ -1,6 +1,0 @@
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/nvms_low_level.c:121:17:get_page	0	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/nvms_low_level.c:67:13:page_write	32	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/nvms_low_level.c:142:6:NVMS_LL_Init	0	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/nvms_low_level.c:158:6:NVMS_LL_IsBlockErased	0	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/nvms_low_level.c:187:6:NVMS_LL_BlockErase	24	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/nvms_low_level.c:233:6:NVMS_LL_Write	32	static

@@ -1,4 +1,0 @@
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_mem.c:209:13:mempool_init	16	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_mem.c:253:6:KMS_MemInit	16	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_mem.c:290:13:KMS_Alloc	16	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_mem.c:355:6:KMS_Free	16	static

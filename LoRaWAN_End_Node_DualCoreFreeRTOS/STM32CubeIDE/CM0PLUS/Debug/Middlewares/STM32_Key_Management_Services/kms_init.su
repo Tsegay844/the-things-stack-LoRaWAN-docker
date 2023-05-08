@@ -1,8 +1,0 @@
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_init.c:85:8:KMS_Initialize	24	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_init.c:206:7:KMS_Finalize	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_init.c:254:7:KMS_GetTokenInfo	0	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_init.c:317:7:KMS_OpenSession	16	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_init.c:492:11:KMS_CheckSessionHdle	0	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_init.c:449:7:KMS_CloseSession	24	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_init.c:510:10:KMS_SetStateIdle	0	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/ST/STM32_Key_Management_Services/Core/kms_init.c:526:11:KMS_GetMechanismInfo	0	static

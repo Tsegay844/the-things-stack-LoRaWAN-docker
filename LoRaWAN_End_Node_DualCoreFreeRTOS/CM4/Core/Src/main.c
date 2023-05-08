@@ -44,14 +44,19 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+osThreadId_t StandbyModeTaskHandle;
+const osThreadAttr_t StandbyModeTask_attributes = {
+  .name = "StandbyModeTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
+void vStandbyModeTask( void *pvParameters );
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -88,7 +93,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-
+  StandbyModeTaskHandle = osThreadNew(vStandbyModeTask, NULL, &StandbyModeTask_attributes);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -104,9 +109,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  HAL_PWREx_EnableSRAMRetention(); // for safety reasons, enable SRAM2 backup retention when entering Standby
-	  HAL_PWR_EnterSTANDBYMode();
-	  HAL_Delay(1000); // program should not reach this state - added delay to re-enter Standby mode
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -162,6 +165,26 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void vStandbyModeTask( void *pvParameters )
+{
+    for( ;; )
+    {
+    	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+    	HAL_Delay(1000);
+    	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+    	__HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU); // Clear all related wakeup flags
+
+    	HAL_PWREx_EnableSRAMRetention(); // enable SRAM2 backup retention when entering Standby
+
+    	HAL_PWR_EnterSTANDBYMode();
+
+    	Error_Handler();  // program should not reach this state - CM4 is permanently set to Standby Mode
+    }
+
+    vTaskDelete( NULL );
+}
+
 
 /* USER CODE END 4 */
 

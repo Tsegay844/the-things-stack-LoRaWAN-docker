@@ -1,7 +1,0 @@
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/ipcc_if.c:173:13:IpccIfIsrTxCb	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/ipcc_if.c:188:13:IpccIfIsrRxCb	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/ipcc_if.c:78:6:IPCC_IF_Init	32	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/ipcc_if.c:109:10:IPCC_IF_CmdRespStatus	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/ipcc_if.c:120:10:IPCC_IF_NotifAckStatus	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/ipcc_if.c:131:9:IPCC_IF_NotificationSnd	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/ipcc_if.c:149:9:IPCC_IF_ResponseSnd	8	static

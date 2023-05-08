@@ -1,8 +1,0 @@
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/Third_Party/mbed-crypto/library/sha256.c:81:6:mbedtls_sha256_init	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/Third_Party/mbed-crypto/library/sha256.c:88:6:mbedtls_sha256_free	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/Third_Party/mbed-crypto/library/sha256.c:96:6:mbedtls_sha256_clone	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/Third_Party/mbed-crypto/library/sha256.c:108:5:mbedtls_sha256_starts_ret	0	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/Third_Party/mbed-crypto/library/sha256.c:201:5:mbedtls_internal_sha256_process	344	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/Third_Party/mbed-crypto/library/sha256.c:274:5:mbedtls_sha256_update_ret	32	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/Third_Party/mbed-crypto/library/sha256.c:336:5:mbedtls_sha256_finish_ret	16	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/Middlewares/Third_Party/mbed-crypto/library/sha256.c:412:5:mbedtls_sha256_ret	136	static

@@ -473,7 +473,7 @@ void LoRaWAN_Init(void)
   LmHandlerConfigure(&LmHandlerParams);
 
   /* USER CODE BEGIN LoRaWAN_Init_2 */
-  UTIL_TIMER_Start(&JoinLedTimer);
+  //UTIL_TIMER_Start(&JoinLedTimer);// REMOVED JOIN LED BLINK
 
   /* USER CODE END LoRaWAN_Init_2 */
 

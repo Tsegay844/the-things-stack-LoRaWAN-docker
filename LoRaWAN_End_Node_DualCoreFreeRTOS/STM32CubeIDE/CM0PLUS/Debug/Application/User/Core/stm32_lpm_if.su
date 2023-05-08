@@ -1,6 +1,0 @@
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/stm32_lpm_if.c:76:6:PWR_EnterOffMode	0	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/stm32_lpm_if.c:83:6:PWR_ExitOffMode	0	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/stm32_lpm_if.c:90:6:PWR_EnterStopMode	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/stm32_lpm_if.c:108:6:PWR_ExitStopMode	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/stm32_lpm_if.c:141:6:PWR_ExitSleepMode	8	static
-C:/Users/bruno.USER-PC/Desktop/Clones/nucleo-wl55jc-sensor-node/LoRaWAN_End_Node_DualCoreFreeRTOS/CM0PLUS/Core/Src/stm32_lpm_if.c:125:6:PWR_EnterSleepMode	8	static

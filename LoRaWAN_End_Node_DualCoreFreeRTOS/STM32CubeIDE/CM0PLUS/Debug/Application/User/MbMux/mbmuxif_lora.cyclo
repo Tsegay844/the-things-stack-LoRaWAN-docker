@@ -1,7 +1,0 @@
-mbmuxif_lora.c:183:13:MBMUXIF_TaskLoraCmdRcv	1
-mbmuxif_lora.c:171:13:MBMUXIF_IsrLoraCmdRcvCb	1
-mbmuxif_lora.c:160:13:MBMUXIF_IsrLoraAckRcvCb	1
-mbmuxif_lora.c:81:8:MBMUXIF_LoraInit	3
-mbmuxif_lora.c:105:19:MBMUXIF_GetLoraFeatureNotifComPtr	2
-mbmuxif_lora.c:121:6:MBMUXIF_LoraSendNotif	2
-mbmuxif_lora.c:141:6:MBMUXIF_LoraSendResp	2

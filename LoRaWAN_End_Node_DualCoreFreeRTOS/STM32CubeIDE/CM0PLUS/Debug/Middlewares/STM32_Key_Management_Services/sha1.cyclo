@@ -1,8 +1,0 @@
-sha1.c:79:6:mbedtls_sha1_init	1
-sha1.c:86:6:mbedtls_sha1_free	2
-sha1.c:94:6:mbedtls_sha1_clone	1
-sha1.c:106:5:mbedtls_sha1_starts_ret	1
-sha1.c:130:5:mbedtls_internal_sha1_process	1
-sha1.c:306:5:mbedtls_sha1_update_ret	9
-sha1.c:368:5:mbedtls_sha1_finish_ret	4
-sha1.c:439:5:mbedtls_sha1_ret	3

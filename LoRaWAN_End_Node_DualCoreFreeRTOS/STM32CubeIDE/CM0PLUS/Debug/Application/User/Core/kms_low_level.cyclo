@@ -1,7 +1,0 @@
-kms_low_level.c:74:7:KMS_LL_Initialize	1
-kms_low_level.c:85:7:KMS_LL_Finalize	1
-kms_low_level.c:100:7:KMS_LL_FLASH_Read	1
-kms_low_level.c:162:6:KMS_LL_ReportError	1
-kms_low_level.c:172:6:KMS_LL_ReportMemInit	1
-kms_low_level.c:184:6:KMS_LL_ReportMemAlloc	1
-kms_low_level.c:195:6:KMS_LL_ReportMemFree	1

@@ -1,5 +1,0 @@
-kms_sign_verify.c:183:11:sign_verify_init	22
-kms_sign_verify.c:473:11:KMS_SignInit	2
-kms_sign_verify.c:511:11:KMS_Sign	12
-kms_sign_verify.c:925:14:KMS_VerifyInit	2
-kms_sign_verify.c:966:8:KMS_Verify	12
