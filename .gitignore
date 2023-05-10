@@ -60,3 +60,4 @@ dkms.conf
 # STM32 CUBE IDE
 .project
 .launch
+.prefs
