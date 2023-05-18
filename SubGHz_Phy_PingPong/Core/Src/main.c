@@ -95,7 +95,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    MX_SubGHz_Phy_Process();
+
+	MX_SubGHz_Phy_Process();
 
     /* USER CODE BEGIN 3 */
   }

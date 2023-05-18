@@ -34,8 +34,7 @@
 
 /* External variables ---------------------------------------------------------*/
 /* USER CODE BEGIN EV */
-#define OP_MODE_TX
-#define TX_OUTPUT_POWER		6	/* dBm */
+
 /* USER CODE END EV */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,14 +48,28 @@ typedef enum
   TX_TIMEOUT,
 } States_t;
 
+typedef enum
+{
+  TB_RX,
+  TB_RX_ERROR,
+  TB_TX,
+  TB_TX_DONE,
+  TB_TX_TIMEOUT,
+  TB_WAIT_USER_TRIG,
+} Testbench_States_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+//TESTBENCH
+#define TEST_MODE_CFG	0
+#define TX_OUTPUT_POWER		14	/* dBm */
+#define TEST_TX_PKT_INTERVAL_MS		1000
+
 /* Configurations */
 /*Timeout*/
 #define RX_TIMEOUT_VALUE              3000
-#define TX_TIMEOUT_VALUE              3000
+#define TX_TIMEOUT_VALUE              10000
 /* PING string*/
 #define PING "PING"
 /* PONG string*/
@@ -86,6 +99,12 @@ typedef enum
 static RadioEvents_t RadioEvents;
 
 /* USER CODE BEGIN PV */
+//TESTBENCH
+int tx_power_dbm = TX_OUTPUT_POWER;
+int n_tx_ctr = 0;
+static Testbench_States_t Testbench_State = TB_WAIT_USER_TRIG;
+bool tx_complete_flag = true;
+
 /*Ping Pong FSM states */
 static States_t State = RX;
 /* App Rx Buffer*/
@@ -151,6 +170,13 @@ static void OnledEvent(void *context);
   */
 static void PingPong_Process(void);
 
+//TESTBENCH
+static void Tb_OnTxDone(void);
+static void Tb_OnTxTimeout(void);
+static void Tb_Tx_Process(void);
+static void Tb_Rx_Process(void);
+void Tb_SubghzApp_ReConfig_Radio(int new_tx_power_dbm, int new_data_rate);
+
 /* USER CODE END PFP */
 
 /* Exported functions ---------------------------------------------------------*/
@@ -158,7 +184,7 @@ void SubghzApp_Init(void)
 {
   /* USER CODE BEGIN SubghzApp_Init_1 */
 
-  APP_LOG(TS_OFF, VLEVEL_M, "\n\rPING PONG\n\r");
+  APP_LOG(TS_OFF, VLEVEL_M, "\n\rLORA RADIO TESTBENCH FOR SIGNAL ATTENUATION MEASUREMENT\n\r");
   /* Get SubGHY_Phy APP version*/
   APP_LOG(TS_OFF, VLEVEL_M, "APPLICATION_VERSION: V%X.%X.%X\r\n",
           (uint8_t)(APP_VERSION_MAIN),
@@ -174,12 +200,16 @@ void SubghzApp_Init(void)
   /* Led Timers*/
   UTIL_TIMER_Create(&timerLed, LED_PERIOD_MS, UTIL_TIMER_ONESHOT, OnledEvent, NULL);
   UTIL_TIMER_Start(&timerLed);
+
+
   /* USER CODE END SubghzApp_Init_1 */
 
   /* Radio initialization */
-  RadioEvents.TxDone = OnTxDone;
+  //RadioEvents.TxDone = OnTxDone;
+  RadioEvents.TxDone = Tb_OnTxDone;
   RadioEvents.RxDone = OnRxDone;
-  RadioEvents.TxTimeout = OnTxTimeout;
+  //RadioEvents.TxTimeout = OnTxTimeout;
+  RadioEvents.TxTimeout = Tb_OnTxTimeout;
   RadioEvents.RxTimeout = OnRxTimeout;
   RadioEvents.RxError = OnRxError;
 
@@ -196,6 +226,7 @@ void SubghzApp_Init(void)
 #if ((USE_MODEM_LORA == 1) && (USE_MODEM_FSK == 0))
   APP_LOG(TS_OFF, VLEVEL_M, "---------------\n\r");
   APP_LOG(TS_OFF, VLEVEL_M, "LORA_MODULATION\n\r");
+  APP_LOG(TS_OFF, VLEVEL_M, "TX_OUTPUT_POWER=%d\n\r", TX_OUTPUT_POWER);
   APP_LOG(TS_OFF, VLEVEL_M, "LORA_BW=%d kHz\n\r", (1 << LORA_BANDWIDTH) * 125);
   APP_LOG(TS_OFF, VLEVEL_M, "LORA_SF=%d\n\r", LORA_SPREADING_FACTOR);
 
@@ -241,7 +272,14 @@ void SubghzApp_Init(void)
   Radio.Rx(RX_TIMEOUT_VALUE + random_delay);
 
   /*register task to to be run in while(1) after Radio IT*/
-  UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), UTIL_SEQ_RFU, PingPong_Process);
+  //UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), UTIL_SEQ_RFU, PingPong_Process);
+  if (TEST_MODE_CFG == 0){
+	  UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), UTIL_SEQ_RFU, Tb_Tx_Process);
+  }
+  else{
+	  UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), UTIL_SEQ_RFU, Tb_Rx_Process);
+  }
+
   /* USER CODE END SubghzApp_Init_2 */
 }
 
@@ -336,6 +374,136 @@ static void OnRxError(void)
 }
 
 /* USER CODE BEGIN PrFD */
+void Tb_SubghzApp_ReConfig_Radio(int new_tx_power_dbm, int new_data_rate)
+{
+	int lora_spreading_factor = 12;
+	int lora_bandwidth = 0; // 125 kHz
+
+	if (new_tx_power_dbm < 6 || new_tx_power_dbm > 16){
+		APP_LOG(TS_OFF, VLEVEL_M, "LORA RECONFIG: POWER CONFIGURATION OUT OF RANGE\n\r");
+		new_tx_power_dbm = 14;
+	}
+
+	Radio.Sleep();
+	// based on RP002-1.0.0 LoRaWAN Regional Parameters
+	// EU863-870 Data Rate and End-device Output Power encoding
+	switch(new_data_rate){
+		case 0:
+			// Radio default configuration is DR0, with SF12, BW 125 kHz, CR 4/6
+			break;
+		case 1:
+			lora_spreading_factor = 11;
+			lora_bandwidth = 0; // 125 kHz
+			break;
+		case 2:
+			lora_spreading_factor = 10;
+			lora_bandwidth = 0; // 125 kHz
+			break;
+		case 3:
+			lora_spreading_factor = 9;
+			lora_bandwidth = 0; // 125 kHz
+			break;
+		case 4:
+			lora_spreading_factor = 8;
+			lora_bandwidth = 0; // 125 kHz
+			break;
+		case 5:
+			lora_spreading_factor = 7;
+			lora_bandwidth = 0; // 125 kHz
+			break;
+		case 6:
+			lora_spreading_factor = 7;
+			lora_bandwidth = 1; // 250 kHz
+			break;
+		default:
+		      break;
+	}
+
+	/* Radio configuration */
+	#if ((USE_MODEM_LORA == 1) && (USE_MODEM_FSK == 0))
+	  APP_LOG(TS_OFF, VLEVEL_M, "---------------\n\r");
+	  APP_LOG(TS_OFF, VLEVEL_M, "RADIO RECONFIG\n\r");
+	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_MODULATION\n\r");
+	  APP_LOG(TS_OFF, VLEVEL_M, "TX_OUTPUT_POWER=%d\n\r", new_tx_power_dbm);
+	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_BW=%d kHz\n\r", (1 << lora_bandwidth) * 125);
+	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_SF=%d\n\r", lora_spreading_factor);
+
+	  Radio.SetTxConfig(MODEM_LORA, new_tx_power_dbm, 0, lora_bandwidth,
+			            lora_spreading_factor, LORA_CODINGRATE,
+	                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
+	                    true, 0, 0, LORA_IQ_INVERSION_ON, TX_TIMEOUT_VALUE);
+
+	#else
+	#error "Testbench only set for LoRa configuration - subghz_phy_app.h file."
+	#endif /* USE_MODEM_LORA | USE_MODEM_FSK */
+}
+
+static void Tb_OnTxDone(void)
+{
+  /* USER CODE BEGIN OnTxDone */
+  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnTxDone\n\r");
+  /* Update the State of the FSM*/
+  Testbench_State = TB_TX_DONE;
+  /* Run PingPong process in background*/
+  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
+  /* USER CODE END OnTxDone */
+}
+
+static void Tb_OnTxTimeout(void)
+{
+  /* USER CODE BEGIN OnTxTimeout */
+  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnTxTimeout\n\r");
+  /* Update the State of the FSM*/
+  Testbench_State = TB_TX_TIMEOUT;
+  /* Run PingPong process in background*/
+  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
+  /* USER CODE END OnTxTimeout */
+}
+
+
+static void Tb_Tx_Process(void){
+
+	switch (Testbench_State){
+		case TB_WAIT_USER_TRIG:
+			Radio.Sleep();
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+			HAL_Delay(TEST_TX_PKT_INTERVAL_MS);
+			Testbench_State = TB_TX;
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+			UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
+			break;
+
+		case TB_TX:
+			HAL_Delay(Radio.GetWakeupTime() + RX_TIME_MARGIN);
+			APP_LOG(TS_ON, VLEVEL_L, "Tx start - send PING\n\r");
+			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+			memcpy(BufferTx, PING, sizeof(PING) - 1);
+			Radio.Send(BufferTx, PAYLOAD_LEN);
+			break;
+
+		case TB_TX_TIMEOUT:
+			Radio.Sleep();
+			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+			HAL_Delay(TEST_TX_PKT_INTERVAL_MS);
+			// Testbench_State = TB_TX;
+			break;
+
+		case TB_TX_DONE:
+			Radio.Sleep();
+			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+			HAL_Delay(TEST_TX_PKT_INTERVAL_MS);
+			// Testbench_State = TB_TX;
+			break;
+
+		default:
+			break;
+	}
+
+}
+static void Tb_Rx_Process(void){
+
+}
+
 static void PingPong_Process(void)
 {
   Radio.Sleep();
