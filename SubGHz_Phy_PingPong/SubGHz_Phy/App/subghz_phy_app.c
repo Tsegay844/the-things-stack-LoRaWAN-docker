@@ -57,19 +57,25 @@ typedef enum
   TB_TX_TIMEOUT,
   TB_WAIT_USER_TRIG,
   TB_END,
+  TB_ERROR,
 } Testbench_States_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 //TESTBENCH
-#define TEST_MODE_CFG	0
+#define TEST_MODE_CFG	0  // 0 for Tx Mode, else Rx mode
 #define MAX_LORA_DR		6  // the testbench will evaluate DR0 to DR6 from RP002-1.0.0 EU863-870 Data Rate
+#define DR_CHANGE_MANUAL		0	// 0 for automatic DR change during test, else user must push button2 (Push Button 2)
 #define MAX_TX_OUTPUT_POWER		16	/* dBm */
 #define MIN_TX_OUTPUT_POWER		6	/* dBm */
+#define TB_LOW_TX_OUTPUT_POWER		8   /* dBm */
+#define TB_MID_TX_OUTPUT_POWER		10  /* dBm */
 #define DEFAULT_TX_OUTPUT_POWER		14	/* dBm */
 #define TEST_TX_PKT_INTERVAL_MS		500  // delay added after every transmission
-#define TEST_N_PKTS		1	// number of packets sent every cycle
+#define TEST_N_PKTS		3	// number of packets sent every cycle (uint16_t)
+#define TB_PAYLOAD_LEN	64 // bytes
+
 
 /* Configurations */
 /*Timeout*/
@@ -110,6 +116,9 @@ int lora_data_rate = 0; // default DR0
 int n_tx_ctr = 0;
 static Testbench_States_t Testbench_State = TB_WAIT_USER_TRIG;
 bool tx_complete_flag = true;
+uint32_t button1_event = 0;
+uint32_t button2_event = 0;
+uint32_t tx_start_timestamp;
 
 /*Ping Pong FSM states */
 static States_t State = RX;
@@ -138,7 +147,7 @@ static int32_t random_delay;
 /*!
  * @brief Function to be executed on Radio Tx Done event
  */
-static void OnTxDone(void);
+//static void OnTxDone(void);
 
 /**
   * @brief Function to be executed on Radio Rx Done event
@@ -152,7 +161,7 @@ static void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t LoraS
 /**
   * @brief Function executed on Radio Tx Timeout event
   */
-static void OnTxTimeout(void);
+//static void OnTxTimeout(void);
 
 /**
   * @brief Function executed on Radio Rx Timeout event
@@ -206,7 +215,9 @@ void SubghzApp_Init(void)
   /* Led Timers*/
   UTIL_TIMER_Create(&timerLed, LED_PERIOD_MS, UTIL_TIMER_ONESHOT, OnledEvent, NULL);
   UTIL_TIMER_Start(&timerLed);
-
+  //TESTBENCH
+  BSP_PB_Init(BUTTON_SW1, BUTTON_MODE_EXTI);
+  BSP_PB_Init(BUTTON_SW2, BUTTON_MODE_EXTI);
 
   /* USER CODE END SubghzApp_Init_1 */
 
@@ -223,7 +234,7 @@ void SubghzApp_Init(void)
 
   /* USER CODE BEGIN SubghzApp_Init_2 */
   /*calculate random delay for synchronization*/
-  random_delay = (Radio.Random()) >> 22; /*10bits random e.g. from 0 to 1023 ms*/
+  //random_delay = (Radio.Random()) >> 22; /*10bits random e.g. from 0 to 1023 ms*/
 
   /* Radio Set frequency */
   Radio.SetChannel(RF_FREQUENCY);
@@ -273,7 +284,7 @@ void SubghzApp_Init(void)
   /*fills tx buffer*/
   memset(BufferTx, 0x0, MAX_APP_BUFFER_SIZE);
 
-  APP_LOG(TS_ON, VLEVEL_L, "rand=%d\n\r", random_delay);
+  //APP_LOG(TS_ON, VLEVEL_L, "rand=%d\n\r", random_delay);
   /*starts reception*/
   //Radio.Rx(RX_TIMEOUT_VALUE + random_delay);
   Radio.Sleep();
@@ -295,16 +306,16 @@ void SubghzApp_Init(void)
 /* USER CODE END EF */
 
 /* Private functions ---------------------------------------------------------*/
-static void OnTxDone(void)
-{
-  /* USER CODE BEGIN OnTxDone */
-  APP_LOG(TS_ON, VLEVEL_L, "OnTxDone\n\r");
+//static void OnTxDone(void)
+//{
+//  /* USER CODE BEGIN OnTxDone */
+//  APP_LOG(TS_ON, VLEVEL_L, "OnTxDone\n\r");
   /* Update the State of the FSM*/
-  State = TX;
+//  State = TX;
   /* Run PingPong process in background*/
-  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
+ // UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
   /* USER CODE END OnTxDone */
-}
+//}
 
 static void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t LoraSnr_FskCfo)
 {
@@ -347,16 +358,16 @@ static void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t LoraS
   /* USER CODE END OnRxDone */
 }
 
-static void OnTxTimeout(void)
-{
+//static void OnTxTimeout(void)
+//{
   /* USER CODE BEGIN OnTxTimeout */
-  APP_LOG(TS_ON, VLEVEL_L, "OnTxTimeout\n\r");
+//  APP_LOG(TS_ON, VLEVEL_L, "OnTxTimeout\n\r");
   /* Update the State of the FSM*/
-  State = TX_TIMEOUT;
+//  State = TX_TIMEOUT;
   /* Run PingPong process in background*/
-  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
+//  UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
   /* USER CODE END OnTxTimeout */
-}
+//}
 
 static void OnRxTimeout(void)
 {
@@ -446,10 +457,29 @@ void Tb_SubghzApp_ReConfig_Radio(int new_tx_power_dbm, int new_data_rate)
 	#endif /* USE_MODEM_LORA | USE_MODEM_FSK */
 }
 
+/**
+  * @brief EXTI line detection callbacks
+  * @param GPIO_Pin Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if (GPIO_Pin == BUTTON_SW1_PIN)
+  {
+    button1_event = 1;
+  }
+  else if (GPIO_Pin == BUTTON_SW2_PIN)
+  {
+	  button2_event = 1;
+  }
+}
+
 static void Tb_OnTxDone(void)
 {
   /* USER CODE BEGIN OnTxDone */
-  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnTxDone\n\r");
+  uint32_t current_time = HAL_GetTick();
+  uint32_t tx_TOA = (current_time - tx_start_timestamp); // transmission time on air in milliseconds
+  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnTxDone - TOA=%d ms\r", tx_TOA);
   /* Update the State of the FSM*/
   Testbench_State = TB_TX_DONE;
   /* Run PingPong process in background*/
@@ -474,28 +504,39 @@ static void Tb_Tx_Process(void){
 	switch (Testbench_State){
 		case TB_WAIT_USER_TRIG:
 			Radio.Sleep();
-			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
-			HAL_Delay(TEST_TX_PKT_INTERVAL_MS); // TODO add button trigger
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
+			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET); // BLUE Led
+			while(button1_event == 0){
+				__NOP();
+			};
+			button1_event = 0;
 			Testbench_State = TB_TX;
-			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
+			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET); // BLUE Led
 			UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 			break;
 
 		case TB_TX:
 			HAL_Delay(Radio.GetWakeupTime() + RX_TIME_MARGIN);
-			APP_LOG(TS_ON, VLEVEL_L, "Tx start - send PING\n\r");
-			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
-			n_tx_ctr++; // increment pkt counter
-			memcpy(BufferTx, PING, sizeof(PING) - 1);
-			Radio.Send(BufferTx, PAYLOAD_LEN);
+			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET); // BLUE Led
+			memset(BufferTx, 0x0, MAX_APP_BUFFER_SIZE); // clear buffer
+			BufferTx[0] = 0xc0;
+			BufferTx[1] = 0xff;
+			BufferTx[2] = 0xee;
+			BufferTx[3] = n_tx_ctr & 0xff;
+			BufferTx[4] = (n_tx_ctr >> 8) & 0xff;
+			BufferTx[5] = lora_data_rate & 0xff;
+			BufferTx[6] = tx_power_dbm & 0xff;
+
+			APP_LOG(TS_ON, VLEVEL_L, "TX SEND - PAYLOAD: KEY(%x%x%x) CTR(%02x%02x) DR(%02x) TXPWR(%02x) LEN(%d)\r",
+					BufferTx[0], BufferTx[1], BufferTx[2], BufferTx[4], BufferTx[3], BufferTx[5], BufferTx[6], TB_PAYLOAD_LEN);
+			tx_start_timestamp = HAL_GetTick();
+			Radio.Send(BufferTx, TB_PAYLOAD_LEN);
 			break;
 
-		case TB_TX_TIMEOUT: // the test should always use TX_DONE callback - Timeout is used to prevent/detect errors
+		case TB_TX_TIMEOUT: // the test should always use TX_DONE callback
 			Radio.Sleep();
 			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET); // BLUE Led
-			HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); // RED Led
 			HAL_Delay(TEST_TX_PKT_INTERVAL_MS);
 			if (n_tx_ctr <= TEST_N_PKTS){
 				Testbench_State = TB_TX; // send again after delay
@@ -504,29 +545,59 @@ static void Tb_Tx_Process(void){
 			break;
 
 		case TB_TX_DONE:
+			n_tx_ctr++; // increment pkt counter
 			Radio.Sleep();
 			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET); // BLUE Led
-			HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET); // RED Led
 			if (n_tx_ctr < TEST_N_PKTS){ // continue TX
 				HAL_Delay(TEST_TX_PKT_INTERVAL_MS);
-				Testbench_State = TB_TX; // send again after delay
-				UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
+				Testbench_State = TB_TX;
 			}
-			else if (n_tx_ctr == TEST_N_PKTS && lora_data_rate < MAX_LORA_DR){ // increase DR, continue TX
+			else if (n_tx_ctr == TEST_N_PKTS){ // end of cycle
 				n_tx_ctr = 0; // reset pkt counter
-				lora_data_rate++; // increase data rate
-				Tb_SubghzApp_ReConfig_Radio(0, lora_data_rate); // reconfigure lora tx parameters
-				HAL_Delay(4*TEST_TX_PKT_INTERVAL_MS); // delay to enable Rx to reconfigure
-				Testbench_State = TB_TX; // resume pkt Tx
-				UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
+				Testbench_State = TB_TX; // return to TX state
+				if (tx_power_dbm == DEFAULT_TX_OUTPUT_POWER){
+					tx_power_dbm = TB_MID_TX_OUTPUT_POWER;
+					Tb_SubghzApp_ReConfig_Radio(tx_power_dbm, lora_data_rate); // decrease TX OUTPUT POWER, same DR
+				}
+				else if (tx_power_dbm == TB_MID_TX_OUTPUT_POWER){
+					tx_power_dbm = TB_LOW_TX_OUTPUT_POWER;
+					Tb_SubghzApp_ReConfig_Radio(tx_power_dbm, lora_data_rate); // decrease TX OUTPUT POWER, same DR
+				}
+				else if (tx_power_dbm == TB_LOW_TX_OUTPUT_POWER && lora_data_rate < MAX_LORA_DR){
+					tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
+					lora_data_rate++;
+					Tb_SubghzApp_ReConfig_Radio(tx_power_dbm, lora_data_rate); // completed all PWR OUTPUT CHANGES - Increase DR
+					if(DR_CHANGE_MANUAL == 0){
+						HAL_Delay(4*TEST_TX_PKT_INTERVAL_MS); // delay to enable Rx to reconfigure
+					}
+					else{
+						HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
+						button2_event = 0;
+						while(button2_event == 0){
+							__NOP();
+						};
+						HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
+					}
+				}
+				else if (tx_power_dbm == TB_LOW_TX_OUTPUT_POWER && lora_data_rate == MAX_LORA_DR){ // completed all PWR OUTPUT AND DR CHANGES
+					Testbench_State = TB_END;
+				}
+				else {
+					Testbench_State = TB_ERROR; // Error
+				}
 			}
-			else if (n_tx_ctr == TEST_N_PKTS && lora_data_rate == MAX_LORA_DR){ // MAX DR cycle ended
-				Testbench_State = TB_END; // TODO Add multi TX Power cycles
-				UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
+			else {
+				Testbench_State = TB_ERROR; // Error
 			}
+			UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 			break;
 
 		case TB_END:
+			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET); // BLUE Led
+			HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); // RED Led
+			break;
+
+		case TB_ERROR:
 			HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); // RED Led
 			break;
 
