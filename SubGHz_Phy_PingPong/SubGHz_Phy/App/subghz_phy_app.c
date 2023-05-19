@@ -72,8 +72,8 @@ typedef enum
 #define TB_LOW_TX_OUTPUT_POWER		8   /* dBm */
 #define TB_MID_TX_OUTPUT_POWER		10  /* dBm */
 #define DEFAULT_TX_OUTPUT_POWER		14	/* dBm */
-#define TEST_TX_PKT_INTERVAL_MS		500  // delay added after every transmission
-#define TEST_N_PKTS		3	// number of packets sent every cycle (uint16_t)
+#define TEST_TX_PKT_INTERVAL_MS		100  // delay added after every transmission
+#define TEST_N_PKTS		100	// number of packets sent every cycle (uint16_t)
 #define TB_PAYLOAD_LEN	64 // bytes
 
 
@@ -119,6 +119,7 @@ bool tx_complete_flag = true;
 uint32_t button1_event = 0;
 uint32_t button2_event = 0;
 uint32_t tx_start_timestamp;
+uint32_t cycle_start_timestamp;
 
 /*Ping Pong FSM states */
 static States_t State = RX;
@@ -199,15 +200,15 @@ void SubghzApp_Init(void)
 {
   /* USER CODE BEGIN SubghzApp_Init_1 */
 
-  APP_LOG(TS_OFF, VLEVEL_M, "\n\rLORA RADIO TESTBENCH FOR SIGNAL ATTENUATION MEASUREMENT\n\r");
+  APP_LOG(TS_OFF, VLEVEL_M, "\n\rLORA RADIO TESTBENCH FOR SIGNAL ATTENUATION MEASUREMENT\r");
   /* Get SubGHY_Phy APP version*/
-  APP_LOG(TS_OFF, VLEVEL_M, "APPLICATION_VERSION: V%X.%X.%X\r\n",
+  APP_LOG(TS_OFF, VLEVEL_M, "APPLICATION_VERSION: V%X.%X.%X\r",
           (uint8_t)(APP_VERSION_MAIN),
           (uint8_t)(APP_VERSION_SUB1),
           (uint8_t)(APP_VERSION_SUB2));
 
   /* Get MW SubGhz_Phy info */
-  APP_LOG(TS_OFF, VLEVEL_M, "MW_RADIO_VERSION:    V%X.%X.%X\r\n",
+  APP_LOG(TS_OFF, VLEVEL_M, "MW_RADIO_VERSION:    V%X.%X.%X\r",
           (uint8_t)(SUBGHZ_PHY_VERSION_MAIN),
           (uint8_t)(SUBGHZ_PHY_VERSION_SUB1),
           (uint8_t)(SUBGHZ_PHY_VERSION_SUB2));
@@ -241,11 +242,11 @@ void SubghzApp_Init(void)
 
   /* Radio configuration */
 #if ((USE_MODEM_LORA == 1) && (USE_MODEM_FSK == 0))
-  APP_LOG(TS_OFF, VLEVEL_M, "---------------\n\r");
-  APP_LOG(TS_OFF, VLEVEL_M, "LORA_MODULATION\n\r");
-  APP_LOG(TS_OFF, VLEVEL_M, "TX_OUTPUT_POWER=%d dBm\n\r", DEFAULT_TX_OUTPUT_POWER);
-  APP_LOG(TS_OFF, VLEVEL_M, "LORA_BW=%d kHz\n\r", (1 << LORA_BANDWIDTH) * 125);
-  APP_LOG(TS_OFF, VLEVEL_M, "LORA_SF=%d\n\r", LORA_SPREADING_FACTOR);
+  APP_LOG(TS_OFF, VLEVEL_M, "\n---------------\r");
+  APP_LOG(TS_OFF, VLEVEL_M, "LORA_MODULATION\r");
+  APP_LOG(TS_OFF, VLEVEL_M, "TX_OUTPUT_POWER=%d dBm\r", DEFAULT_TX_OUTPUT_POWER);
+  APP_LOG(TS_OFF, VLEVEL_M, "LORA_BW=%d kHz\r", (1 << LORA_BANDWIDTH) * 125);
+  APP_LOG(TS_OFF, VLEVEL_M, "LORA_SF=%d\r", LORA_SPREADING_FACTOR);
 
   Radio.SetTxConfig(MODEM_LORA, DEFAULT_TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
                     LORA_SPREADING_FACTOR, LORA_CODINGRATE,
@@ -290,6 +291,7 @@ void SubghzApp_Init(void)
   Radio.Sleep();
   /*register task to to be run in while(1) after Radio IT*/
   //UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), UTIL_SEQ_RFU, PingPong_Process);
+
   if (TEST_MODE_CFG == 0){
 	  UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), UTIL_SEQ_RFU, Tb_Tx_Process);
   }
@@ -440,12 +442,12 @@ void Tb_SubghzApp_ReConfig_Radio(int new_tx_power_dbm, int new_data_rate)
 
 	/* Radio configuration */
 	#if ((USE_MODEM_LORA == 1) && (USE_MODEM_FSK == 0))
-	  APP_LOG(TS_OFF, VLEVEL_M, "---------------\n\r");
-	  APP_LOG(TS_OFF, VLEVEL_M, "RADIO RECONFIG\n\r");
-	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_MODULATION\n\r");
-	  APP_LOG(TS_OFF, VLEVEL_M, "TX_OUTPUT_POWER=%d dBm\n\r", new_tx_power_dbm);
-	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_BW=%d kHz\n\r", (1 << lora_bandwidth) * 125);
-	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_SF=%d\n\r", lora_spreading_factor);
+	  APP_LOG(TS_OFF, VLEVEL_M, "\n---------------\r");
+	  APP_LOG(TS_OFF, VLEVEL_M, "RADIO RE-CONFIG\r");
+	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_MODULATION\r");
+	  APP_LOG(TS_OFF, VLEVEL_M, "TX_OUTPUT_POWER=%d dBm\r", new_tx_power_dbm);
+	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_BW=%d kHz\r", (1 << lora_bandwidth) * 125);
+	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_SF=%d\r", lora_spreading_factor);
 
 	  Radio.SetTxConfig(MODEM_LORA, new_tx_power_dbm, 0, lora_bandwidth,
 			            lora_spreading_factor, LORA_CODINGRATE,
@@ -500,7 +502,7 @@ static void Tb_OnTxTimeout(void)
 
 
 static void Tb_Tx_Process(void){
-
+	uint32_t cycle_end_timestamp;
 	switch (Testbench_State){
 		case TB_WAIT_USER_TRIG:
 			Radio.Sleep();
@@ -528,6 +530,10 @@ static void Tb_Tx_Process(void){
 			BufferTx[5] = lora_data_rate & 0xff;
 			BufferTx[6] = tx_power_dbm & 0xff;
 
+			if (n_tx_ctr == 0){
+				cycle_start_timestamp = HAL_GetTick();
+				APP_LOG(TS_ON, VLEVEL_L, "Cycle START - PWR=%d dBm - DR %d\r", tx_power_dbm, lora_data_rate);
+			}
 			APP_LOG(TS_ON, VLEVEL_L, "TX SEND - PAYLOAD: KEY(%x%x%x) CTR(%02x%02x) DR(%02x) TXPWR(%02x) LEN(%d)\r",
 					BufferTx[0], BufferTx[1], BufferTx[2], BufferTx[4], BufferTx[3], BufferTx[5], BufferTx[6], TB_PAYLOAD_LEN);
 			tx_start_timestamp = HAL_GetTick();
@@ -553,6 +559,9 @@ static void Tb_Tx_Process(void){
 				Testbench_State = TB_TX;
 			}
 			else if (n_tx_ctr == TEST_N_PKTS){ // end of cycle
+				cycle_end_timestamp = HAL_GetTick();
+				APP_LOG(TS_ON, VLEVEL_L, "Cycle END - PWR=%d dBm - DR %d\r - Total time: %d ms",
+						tx_power_dbm, lora_data_rate, cycle_end_timestamp - cycle_start_timestamp);
 				n_tx_ctr = 0; // reset pkt counter
 				Testbench_State = TB_TX; // return to TX state
 				if (tx_power_dbm == DEFAULT_TX_OUTPUT_POWER){
@@ -568,7 +577,7 @@ static void Tb_Tx_Process(void){
 					lora_data_rate++;
 					Tb_SubghzApp_ReConfig_Radio(tx_power_dbm, lora_data_rate); // completed all PWR OUTPUT CHANGES - Increase DR
 					if(DR_CHANGE_MANUAL == 0){
-						HAL_Delay(4*TEST_TX_PKT_INTERVAL_MS); // delay to enable Rx to reconfigure
+						HAL_Delay(2000); // delay to enable Rx to reconfigure
 					}
 					else{
 						HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
