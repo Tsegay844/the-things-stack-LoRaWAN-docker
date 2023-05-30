@@ -65,18 +65,21 @@ typedef enum
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 // TESTBENCH
-#define TEST_MODE_CFG	1  // 0 for Tx Mode, else Rx mode
-#define MAX_LORA_DR		6  // the testbench will evaluate DR0 to DR6 from RP002-1.0.0 EU863-870 Data Rate
-#define DR_CHANGE_MANUAL		0	// 0 for automatic DR change during test, else user must push button2 (Push Button 2)
+#define TEST_MODE_CFG		0  // 0 for Tx Mode, else Rx mode
+#define DR_CHANGE_MANUAL	1	// 0 for automatic DR change during test, else user must push button2 (Push Button 2)
+
+#define MAX_LORA_DR				6  // the testbench will evaluate DR0 to DR6 from RP002-1.0.0 EU863-870 Data Rate
+#define DEFAULT_DATA_RATE		5
 #define MAX_TX_OUTPUT_POWER		16	/* dBm */
 #define MIN_TX_OUTPUT_POWER		6	/* dBm */
 #define DEFAULT_TX_OUTPUT_POWER		14	/* dBm */
+
 #define TEST_TX_POWER_STEP			2	// step when changing TX power
 #define TEST_TX_PKT_INTERVAL_MS		200  // delay added after every transmission
 #define TEST_N_PKTS		3	// number of packets sent every cycle (uint16_t)
 #define TB_PAYLOAD_LEN	64 // bytes
 // RX CYCLE TIME
-#define RX_CYCLE_TIME_DR0	1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR0	2500 // HARDCODED IN MS
 
 /* Configurations */
 /*Timeout*/
@@ -112,8 +115,8 @@ static RadioEvents_t RadioEvents;
 
 /* USER CODE BEGIN PV */
 //TESTBENCH
-int tx_power_dbm = DEFAULT_TX_OUTPUT_POWER; // default 14 dBm
-int lora_data_rate = 0; // default DR0
+int tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
+int lora_data_rate = DEFAULT_DATA_RATE;
 int n_tx_ctr = 0;
 static Testbench_States_t Testbench_State = TB_WAIT_USER_TRIG;
 bool tx_complete_flag = true;
@@ -122,6 +125,7 @@ uint32_t button1_event = 0;
 uint32_t button2_event = 0;
 uint32_t tx_start_timestamp;
 uint32_t cycle_start_timestamp;
+uint32_t rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
 static UTIL_TIMER_Object_t timerRxSynch; // synch timer for changing DR
 
 /*Ping Pong FSM states */
@@ -137,7 +141,7 @@ int8_t RssiValue = 0;
 /* Last  Received packer SNR (in Lora modulation)*/
 int8_t SnrValue = 0;
 /* Led Timers objects*/
-static UTIL_TIMER_Object_t timerLed;
+// static UTIL_TIMER_Object_t timerLed;
 /* device state. Master: true, Slave: false*/
 bool isMaster = true;
 /* random delay to make sure 2 devices will sync*/
@@ -198,9 +202,8 @@ static void Tb_Rx_Process(void);
 static void Tb_OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t LoraSnr_FskCfo);
 // static void Tb_OnRxTimeout(void);
 static void Tb_OnRxError(void);
-
 static void Tb_OnTimerRxSynch(void *context);
-void Tb_SubghzApp_ReConfig_Radio(int new_tx_power_dbm, int new_data_rate);
+void Tb_Config_Radio(int new_tx_power_dbm, int new_data_rate);
 
 /* USER CODE END PFP */
 
@@ -223,11 +226,13 @@ void SubghzApp_Init(void)
           (uint8_t)(SUBGHZ_PHY_VERSION_SUB2));
 
   /* Led Timers*/
-  UTIL_TIMER_Create(&timerLed, LED_PERIOD_MS, UTIL_TIMER_ONESHOT, OnledEvent, NULL);
-  UTIL_TIMER_Start(&timerLed);
+  //UTIL_TIMER_Create(&timerLed, LED_PERIOD_MS, UTIL_TIMER_ONESHOT, OnledEvent, NULL);
+  //UTIL_TIMER_Start(&timerLed);
   //TESTBENCH
+  UTIL_TIMER_Create(&timerRxSynch, rx_synch_timer_value_ms, UTIL_TIMER_ONESHOT, Tb_OnTimerRxSynch, NULL);
   BSP_PB_Init(BUTTON_SW1, BUTTON_MODE_EXTI);
   BSP_PB_Init(BUTTON_SW2, BUTTON_MODE_EXTI);
+
 
   /* USER CODE END SubghzApp_Init_1 */
 
@@ -250,46 +255,9 @@ void SubghzApp_Init(void)
   Radio.SetChannel(RF_FREQUENCY);
 
   /* Radio configuration */
-#if ((USE_MODEM_LORA == 1) && (USE_MODEM_FSK == 0))
-  APP_LOG(TS_OFF, VLEVEL_M, "\n---------------\r");
-  APP_LOG(TS_OFF, VLEVEL_M, "LORA_MODULATION\r");
-  APP_LOG(TS_OFF, VLEVEL_M, "TX_OUTPUT_POWER=%d dBm\r", DEFAULT_TX_OUTPUT_POWER);
-  APP_LOG(TS_OFF, VLEVEL_M, "LORA_BW=%d kHz\r", (1 << LORA_BANDWIDTH) * 125);
-  APP_LOG(TS_OFF, VLEVEL_M, "LORA_SF=%d\r", LORA_SPREADING_FACTOR);
-
-  Radio.SetTxConfig(MODEM_LORA, DEFAULT_TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
-                    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
-                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
-                    true, 0, 0, LORA_IQ_INVERSION_ON, TX_TIMEOUT_VALUE);
-
-  Radio.SetRxConfig(MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
-                    LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
-                    LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
-                    0, true, 0, 0, LORA_IQ_INVERSION_ON, true);
+  Tb_Config_Radio(DEFAULT_TX_OUTPUT_POWER, DEFAULT_DATA_RATE);
 
   Radio.SetMaxPayloadLength(MODEM_LORA, MAX_APP_BUFFER_SIZE);
-
-#elif ((USE_MODEM_LORA == 0) && (USE_MODEM_FSK == 1))
-  APP_LOG(TS_OFF, VLEVEL_M, "---------------\n\r");
-  APP_LOG(TS_OFF, VLEVEL_M, "FSK_MODULATION\n\r");
-  APP_LOG(TS_OFF, VLEVEL_M, "FSK_BW=%d Hz\n\r", FSK_BANDWIDTH);
-  APP_LOG(TS_OFF, VLEVEL_M, "FSK_DR=%d bits/s\n\r", FSK_DATARATE);
-
-  Radio.SetTxConfig(MODEM_FSK, DEFAULT_TX_OUTPUT_POWER, FSK_FDEV, 0,
-                    FSK_DATARATE, 0,
-                    FSK_PREAMBLE_LENGTH, FSK_FIX_LENGTH_PAYLOAD_ON,
-                    true, 0, 0, 0, TX_TIMEOUT_VALUE);
-
-  Radio.SetRxConfig(MODEM_FSK, FSK_BANDWIDTH, FSK_DATARATE,
-                    0, FSK_AFC_BANDWIDTH, FSK_PREAMBLE_LENGTH,
-                    0, FSK_FIX_LENGTH_PAYLOAD_ON, 0, true,
-                    0, 0, false, true);
-
-  Radio.SetMaxPayloadLength(MODEM_FSK, MAX_APP_BUFFER_SIZE);
-
-#else
-#error "Please define a modulation in the subghz_phy_app.h file."
-#endif /* USE_MODEM_LORA | USE_MODEM_FSK */
 
   /*fills tx buffer*/
   memset(BufferTx, 0x0, MAX_APP_BUFFER_SIZE);
@@ -297,10 +265,8 @@ void SubghzApp_Init(void)
   //APP_LOG(TS_ON, VLEVEL_L, "rand=%d\n\r", random_delay);
   /*starts reception*/
   //Radio.Rx(RX_TIMEOUT_VALUE + random_delay);
-  Radio.Sleep();
-  /*register task to to be run in while(1) after Radio IT*/
-  //UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), UTIL_SEQ_RFU, PingPong_Process);
 
+  /*register task to to be run in while(1) after Radio IT*/
   if (TEST_MODE_CFG == 0){
 	  UTIL_SEQ_RegTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), UTIL_SEQ_RFU, Tb_Tx_Process);
   }
@@ -383,13 +349,13 @@ static void OnRxError(void)
 }
 
 /* USER CODE BEGIN PrFD */
-void Tb_SubghzApp_ReConfig_Radio(int new_tx_power_dbm, int new_data_rate)
+void Tb_Config_Radio(int new_tx_power_dbm, int new_data_rate)
 {
 	int lora_spreading_factor = 12;
 	int lora_bandwidth = 0; // 125 kHz
 
 	if (new_tx_power_dbm < MIN_TX_OUTPUT_POWER || new_tx_power_dbm > MAX_TX_OUTPUT_POWER){
-		APP_LOG(TS_OFF, VLEVEL_M, "LORA RECONFIG: POWER CONFIGURATION OUT OF RANGE\n\r");
+		APP_LOG(TS_OFF, VLEVEL_M, "LORA CONFIG: POWER CONFIGURATION OUT OF RANGE\n\r");
 		new_tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
 	}
 
@@ -425,16 +391,17 @@ void Tb_SubghzApp_ReConfig_Radio(int new_tx_power_dbm, int new_data_rate)
 			lora_bandwidth = 1; // 250 kHz
 			break;
 		default:
-			APP_LOG(TS_OFF, VLEVEL_M, "LORA RECONFIG: DATA RATE OUT OF RANGE\n\r");
+			APP_LOG(TS_OFF, VLEVEL_M, "LORA CONFIG: DATA RATE OUT OF RANGE\n\r");
 		    break;
 	}
 
 	/* Radio re configuration */
 	#if ((USE_MODEM_LORA == 1) && (USE_MODEM_FSK == 0))
 	  APP_LOG(TS_OFF, VLEVEL_M, "\n---------------\r");
-	  APP_LOG(TS_OFF, VLEVEL_M, "RADIO RE-CONFIG\r");
+	  APP_LOG(TS_OFF, VLEVEL_M, "RADIO CONFIG\r");
 	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_MODULATION\r");
 	  APP_LOG(TS_OFF, VLEVEL_M, "TX_OUTPUT_POWER=%d dBm\r", new_tx_power_dbm);
+	  APP_LOG(TS_OFF, VLEVEL_M, "LORA DATA RATE=%d\r", new_data_rate);
 	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_BW=%d kHz\r", (1 << lora_bandwidth) * 125);
 	  APP_LOG(TS_OFF, VLEVEL_M, "LORA_SF=%d\r", lora_spreading_factor);
 
@@ -474,8 +441,10 @@ static void Tb_OnTxDone(void)
 {
   /* USER CODE BEGIN OnTxDone */
   uint32_t current_time = HAL_GetTick();
-  uint32_t tx_TOA = (current_time - tx_start_timestamp); // transmission time on air in milliseconds
-  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnTxDone - TOA=%d ms\r", tx_TOA);
+  float delta = (float)(current_time - tx_start_timestamp)/1024; // transmission time on air in seconds
+  int deltaInt = (int)delta;
+  int deltaDec = (int)((delta - deltaInt) * 1000);
+  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnTxDone - TOA=%ds%03d\r", deltaInt, deltaDec);
   /* Update the State of the FSM*/
   Testbench_State = TB_TX_DONE;
   /* Run PingPong process in background*/
@@ -497,7 +466,7 @@ static void Tb_OnTxTimeout(void)
 static void Tb_OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t LoraSnr_FskCfo)
 {
   /* USER CODE BEGIN OnRxDone */
-  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxDone\n\r");
+  //APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxDone\n\r");
 	/* Update the State of the FSM*/
   Testbench_State = TB_RX_DONE;
   /* Clear BufferRx*/
@@ -524,7 +493,7 @@ static void Tb_OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t Lo
 static void Tb_OnRxError(void)
 {
   /* USER CODE BEGIN OnRxError */
-  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxError\n\r");
+  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxError: PKT ERROR\n\r");
   /* Update the State of the FSM*/
   Testbench_State = TB_ERROR;
   /* Run PingPong process in background*/
@@ -535,6 +504,9 @@ static void Tb_OnRxError(void)
 
 static void Tb_Tx_Process(void){
 	uint32_t cycle_end_timestamp;
+	float delta;
+	int deltaInt;
+	int deltaDec;
 
 	switch (Testbench_State){
 		case TB_WAIT_USER_TRIG:
@@ -594,18 +566,21 @@ static void Tb_Tx_Process(void){
 			}
 			else if (n_tx_ctr == TEST_N_PKTS){ // end of cycle
 				cycle_end_timestamp = HAL_GetTick();
-				APP_LOG(TS_ON, VLEVEL_L, "Cycle END - PWR=%d dBm - DR %d\r - Total time: %d ms",
-						tx_power_dbm, lora_data_rate, cycle_end_timestamp - cycle_start_timestamp);
+				delta = (float)(cycle_end_timestamp - cycle_start_timestamp)/1024;
+				deltaInt = (int)delta;
+				deltaDec = (int)((delta - deltaInt) * 1000);
+				APP_LOG(TS_ON, VLEVEL_L, "Cycle END - PWR=%d dBm - DR %d\r - Total time: %ds%03d",
+						tx_power_dbm, lora_data_rate, deltaInt, deltaDec);
 				n_tx_ctr = 0; // reset pkt counter
 				Testbench_State = TB_TX; // return to TX state
 				if (tx_power_dbm > MIN_TX_OUTPUT_POWER){
 					tx_power_dbm = tx_power_dbm - TEST_TX_POWER_STEP;
-					Tb_SubghzApp_ReConfig_Radio(tx_power_dbm, lora_data_rate); // decrease TX OUTPUT POWER, same DR
+					Tb_Config_Radio(tx_power_dbm, lora_data_rate); // decrease TX OUTPUT POWER, same DR
 				}
 				else if (tx_power_dbm == MIN_TX_OUTPUT_POWER && lora_data_rate < MAX_LORA_DR){
 					tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
 					lora_data_rate++;
-					Tb_SubghzApp_ReConfig_Radio(tx_power_dbm, lora_data_rate); // completed all PWR OUTPUT CHANGES - Increase DR
+					Tb_Config_Radio(tx_power_dbm, lora_data_rate); // completed all PWR OUTPUT CHANGES - Increase DR
 					if(DR_CHANGE_MANUAL == 0){
 						HAL_Delay(2000); // delay to enable Rx to reconfigure
 					}
@@ -647,8 +622,6 @@ static void Tb_Tx_Process(void){
 }
 
 static void Tb_Rx_Process(void){
-	uint32_t cycle_end_timestamp;
-
 	switch (Testbench_State){
 		case TB_WAIT_USER_TRIG:
 			Radio.Sleep();
@@ -661,6 +634,11 @@ static void Tb_Rx_Process(void){
 			Testbench_State = TB_RX;
 			//HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
 			HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET); // RED Led
+			if (DR_CHANGE_MANUAL == 0){
+				// RX Synch timer
+				UTIL_TIMER_Start(&timerRxSynch);
+				APP_LOG(TS_ON, VLEVEL_L, "TEST START - AUTO CFG\n\r");
+			}
 			UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 			break;
 
@@ -669,7 +647,7 @@ static void Tb_Rx_Process(void){
 			if (n_tx_ctr == 0){
 				cycle_start_timestamp = HAL_GetTick();
 				rx_cycle_complete_flag = false;
-				APP_LOG(TS_ON, VLEVEL_L, "Cycle START - PWR=%d dBm - DR %d\r", tx_power_dbm, lora_data_rate);
+				APP_LOG(TS_ON, VLEVEL_L, "Cycle START - DR %d\n\r", lora_data_rate);
 			}
 			// APP_LOG(TS_ON, VLEVEL_L, "TESTBENCH RADIO RX SET\n\r");
 			Radio.Rx(RX_TIMEOUT_VALUE); // Continuous Mode
@@ -685,11 +663,13 @@ static void Tb_Rx_Process(void){
 			break;
 
 		case TB_END:
+			APP_LOG(TS_ON, VLEVEL_L, "TEST END - OK\n\r");
 			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET); // BLUE Led
 			HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); // RED Led
 			break;
 
 		case TB_ERROR:
+			APP_LOG(TS_ON, VLEVEL_L, "TEST ERROR\n\r");
 			UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 			HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); // RED Led
 			break;
@@ -715,7 +695,7 @@ static void PingPong_Process(void)
         {
           if (strncmp((const char *)BufferRx, PONG, sizeof(PONG) - 1) == 0)
           {
-            UTIL_TIMER_Stop(&timerLed);
+            //UTIL_TIMER_Stop(&timerLed);
             /* switch off green led */
             //HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); /* LED_GREEN */
             /* master toggles red led */
@@ -752,7 +732,7 @@ static void PingPong_Process(void)
         {
           if (strncmp((const char *)BufferRx, PING, sizeof(PING) - 1) == 0)
           {
-            UTIL_TIMER_Stop(&timerLed);
+            //UTIL_TIMER_Stop(&timerLed);
             /* switch off red led */
             //HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET); /* LED_RED */
             /* slave toggles green led */
@@ -813,10 +793,58 @@ static void OnledEvent(void *context)
 {
   //HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin); /* LED_GREEN */
   //HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin); /* LED_RED */
-  UTIL_TIMER_Start(&timerLed);
+  //UTIL_TIMER_Start(&timerLed);
 }
 
 static void Tb_OnTimerRxSynch(void *context){
+	uint32_t cycle_end_timestamp;
+	cycle_end_timestamp = HAL_GetTick();
+	float delta = (cycle_end_timestamp - cycle_start_timestamp)/1024;
+	int deltaInt = (int)delta;
+	int deltaDec = (int)((delta - deltaInt) * 1000);
+	// This function is called at the end of a Full TX Power Cycle - Move to Next LoRa Data Rate
+	APP_LOG(TS_ON, VLEVEL_L, "Cycle END - Packets Received (%d) - Cycle Time %ds%03d\n\r",
+			n_tx_ctr, deltaInt, deltaDec);
+	n_tx_ctr = 0; // reset counter
+	if (lora_data_rate < MAX_LORA_DR){
+		lora_data_rate++;
+		Tb_Config_Radio(tx_power_dbm, lora_data_rate); // Configure Radio with the next DR value
+		// Configure Synch Timer for the next DR value
+		switch(lora_data_rate){
+					case 0:
+						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+						break;
+					case 1:
+						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+						break;
+					case 2:
+						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+						break;
+					case 3:
+						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+						break;
+					case 4:
+						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+						break;
+					case 5:
+						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+						break;
+					case 6:
+						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+						break;
+					default:
+						APP_LOG(TS_OFF, VLEVEL_M, "RX SYNCH: DATA RATE OUT OF RANGE\n\r");
+					    break;
+				}
+			UTIL_TIMER_SetPeriod(&timerRxSynch, rx_synch_timer_value_ms);
+			UTIL_TIMER_Start(&timerRxSynch);
 
+			Testbench_State = TB_RX; // resume RX
+	}
+	else if (lora_data_rate == MAX_LORA_DR){
+		Testbench_State = TB_END;
+	}
+
+	UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 }
 /* USER CODE END PrFD */
