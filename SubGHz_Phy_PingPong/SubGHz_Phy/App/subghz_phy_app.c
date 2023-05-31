@@ -57,7 +57,7 @@ typedef enum
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 // TESTBENCH
-#define TEST_MODE_CFG		0  // 0 for Tx Mode, else Rx Mode
+#define TEST_MODE_CFG		1  // 0 for TX Mode, else RX Mode
 
 /** DR_CHANGE_MANUAL is used to set the test automatic radio reconfiguration
  * 	In Tx Mode, when in Manual Mode,  the program stops at the end of each Power cycle.
@@ -80,8 +80,9 @@ typedef enum
 #define TEST_TX_PKT_INTERVAL_MS		200  // delay added after every transmission (in ms)
 #define TEST_N_PKTS		3	// number of packets sent every cycle (uint16_t)
 #define TB_PAYLOAD_LEN	64 	// bytes
+#define MAX_SYNCH_RETRIES	20
 // RX CYCLE TIME CONFIGURATION
-#define RX_CYCLE_TIME_DR0	2500 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR0	20000 // HARDCODED IN MS
 
 /* Configurations */
 /*Timeout*/
@@ -108,9 +109,10 @@ static RadioEvents_t RadioEvents;
 
 /* USER CODE BEGIN PV */
 //TESTBENCH
-int tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
-int lora_data_rate = DEFAULT_DATA_RATE;
-int n_tx_ctr = 0; // in Tx Mode, counts pkts sent per Cycle. In Rx mode, counts pkts received per Cycle
+uint8_t tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
+uint8_t lora_data_rate = DEFAULT_DATA_RATE;
+int synch_retransmit_ctr = 0; // in Rx Mode, counts the number of packets sent during the synch process
+int n_tx_ctr = 0; // in TX Mode, counts pkts sent per Cycle. In RX mode, counts pkts received per Cycle
 static Testbench_States_t Testbench_State = TB_WAIT_USER_TRIG;
 bool rx_cycle_complete_flag = true; // set in the Synch Timer callback
 bool tx_synch_flag = true; // set in the Tb_OnRxDone
@@ -119,7 +121,7 @@ uint32_t button1_event = 0;
 uint32_t button2_event = 0;
 uint32_t tx_start_timestamp = 0; // RTC count
 uint32_t cycle_start_timestamp = 0; // RTC count
-uint32_t rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0; // initial Synch Timer value
+// uint32_t rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0; // initial Synch Timer value
 static UTIL_TIMER_Object_t timerRxSynch; // Synch Timer for changing DR in Rx Mode
 
 /* App Rx Buffer*/
@@ -147,6 +149,7 @@ static void Tb_OnRxTimeout(void);
 static void Tb_OnRxError(void);
 static void Tb_OnTimerRxSynch(void *context);
 
+void Tb_Set_Synch_Timer(uint8_t cycle_lora_data_rate);
 void Tb_Config_Radio(int new_tx_power_dbm, int new_data_rate);
 
 /* USER CODE END PFP */
@@ -175,7 +178,8 @@ void SubghzApp_Init(void)
           (uint8_t)(SUBGHZ_PHY_VERSION_SUB2));
 
   // Rx Synch Timer
-  UTIL_TIMER_Create(&timerRxSynch, rx_synch_timer_value_ms, UTIL_TIMER_ONESHOT, Tb_OnTimerRxSynch, NULL);
+  UTIL_TIMER_Create(&timerRxSynch, RX_CYCLE_TIME_DR0, UTIL_TIMER_ONESHOT, Tb_OnTimerRxSynch, NULL);
+  UTIL_TIMER_SetPeriod(&timerRxSynch, RX_CYCLE_TIME_DR0);
   // Push Buttons
   BSP_PB_Init(BUTTON_SW1, BUTTON_MODE_EXTI);
   BSP_PB_Init(BUTTON_SW2, BUTTON_MODE_EXTI);
@@ -308,10 +312,13 @@ static void Tb_OnTxDone(void)
   else if(Testbench_State == TB_TX_SYNCH){
 	  // Start testbench DR cycle
 	  Testbench_State = TB_TX_DONE;
+	  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnTxDone - TX SYNCH REPLY SENT\n\r");
   }
   else if(Testbench_State == TB_RX_SYNCH){
-	  rx_synch_flag = true; // star synch receiver - wait for TX Node to send REPLY synch frame
-  	  Testbench_State = TB_RX_DONE;
+	  rx_synch_flag = true;
+	  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET); // BLUE Led
+  	  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnTxDone - RX SYNCH FRAME SENT\n\r");
+  	  // Return to FSM in TB_RX_SYNCH state - wait for TX Node to send REPLY synch frame
     }
 
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
@@ -352,23 +359,30 @@ static void Tb_OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t Lo
 
   /* Update the State of the FSM*/
     if (Testbench_State == TB_RX){ // Regular reception during Testbench run
-  	Testbench_State = TB_RX_DONE;
+    	Testbench_State = TB_RX_DONE;
     }
     else if(Testbench_State == TB_TX_SYNCH){ // TX synch sate - Waiting for RX Node to send synch frame
-  	  // check payload key value
-  	  if (BufferRx[0] == 0xaf){
-  		tx_synch_flag = true; // Received Cycle synch frame
-  	  }
+    	// check payload key value
+    	if (BufferRx[0] == 0xaf){
+    		tx_synch_flag = true; // Received Cycle synch frame
+    		APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxDone - TX SYNCH OK - SENDING REPLY\n\r");
+    	}
+    	else{
+    		APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxDone - TX SYNCH ERROR - RECEIVED WRONG KEY VALUE\n\r");
+    	}
+    	// Return to Tx Process in TB_TX_SYNCH state, the TX Node will send a REPLY synch frame
     }
     else if(Testbench_State == TB_RX_SYNCH){ // RX synch sate - Waiting for TX Node to send REPLY synch frame
     	// check payload key value
     	if (BufferRx[0] == 0xbf){
-    		tx_synch_flag = true; // Received REPLY synch frame
+    		synch_retransmit_ctr = 0;
+    		rx_synch_flag = true; // Received REPLY synch frame - reset flag for next synch cycle
+    		APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxDone - RX SYNCH REPLY OK\n\r");
+    		Testbench_State = TB_RX_DONE;
     	}
-    	if (DR_CHANGE_MANUAL == 0){
-    		// RX Synch timer
-    		UTIL_TIMER_Start(&timerRxSynch);
-    		APP_LOG(TS_ON, VLEVEL_L, "TEST START - AUTO CFG\n\r");
+    	else{
+
+    		APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxDone - RX SYNCH ERROR - RECEIVED WRONG KEY VALUE\n\r");
     	}
     }
 
@@ -392,11 +406,22 @@ static void Tb_OnRxError(void)
 static void Tb_OnRxTimeout(void)
 {
   /* USER CODE BEGIN OnTxTimeout */
-  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxTimeout\n\r");
 
   if(Testbench_State == TB_RX_SYNCH){
-	  rx_synch_flag = false; // FAILED TO GET REPLY synch frame from TX Node
-	  // send new synch frame
+	  rx_synch_flag = false; // timeout for the REPLY synch frame from TX Node
+	  synch_retransmit_ctr++;
+	  if (synch_retransmit_ctr == MAX_SYNCH_RETRIES){
+		  synch_retransmit_ctr = 0;
+		  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxTimeout - RX SYNCH TIMEOUT MAX RETRIES CTR: %d\n\r", synch_retransmit_ctr);
+		  Testbench_State = TB_WAIT_USER_TRIG; // max retries reached - wait for user input
+	  }
+	  else{
+		  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxTimeout - RX SYNCH TIMEOUT CTR: %d\n\r", synch_retransmit_ctr);
+		  // Remain in TB_RX_SYNCH state - send new synch frame
+	  }
+  }
+  else{
+	  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxTimeout\n\r");
   }
 
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
@@ -430,7 +455,7 @@ static void Tb_Tx_Process(void){
 			if(tx_synch_flag == false){ // Wait for RX node to send initial PKT
 				Tb_Config_Radio(DEFAULT_TX_OUTPUT_POWER, DEFAULT_DATA_RATE); // Set radio to default parameters
 				HAL_Delay(50);
-				Radio.Rx(0);
+				Radio.Rx(0); // Wait for RX Node to send Synch frame
 			}
 			else{ // Received Cycle start frame
 				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
@@ -565,15 +590,21 @@ static void Tb_Rx_Process(void){
 
 		case TB_RX_SYNCH:
 			if (rx_synch_flag == false){
+				Radio.Sleep();
 				memset(BufferTx, 0x0, MAX_APP_BUFFER_SIZE); // clear buffer
 				BufferTx[0] = 0xaf; // key for synch frame
-				Radio.Send(BufferTx, TB_PAYLOAD_LEN); // send REPLY synch frame - callback set FSM to TB_RX
+				BufferTx[1] = lora_data_rate; // cycle DR
+				if (synch_retransmit_ctr == 0){
+					Tb_Config_Radio(DEFAULT_TX_OUTPUT_POWER, DEFAULT_DATA_RATE);
+				}
 				HAL_Delay(50);
+				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET); // BLUE Led
+				Radio.Send(BufferTx, TB_PAYLOAD_LEN); // send synch frame - callback set FSM to TB_RX
 			}
 			else{
+				APP_LOG(TS_ON, VLEVEL_L, "RX SYNCH WAIT FOR REPLY - Cycle DR %d\n\r", lora_data_rate);
 				Radio.Rx(RX_TIMEOUT_VALUE);
 			}
-
 			break;
 
 		case TB_RX:
@@ -590,9 +621,19 @@ static void Tb_Rx_Process(void){
 		case TB_RX_DONE:
 			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
 			Radio.Sleep();
-			HAL_Delay(50);
-			n_tx_ctr++; // increment received packet count - reset is done in the synch timer callback
+			if (rx_synch_flag == true){ // received REPLY synch frame - Synch is OK - Configure the Radio for the Cycle test
+				rx_synch_flag = false; // reset flag for next cycle synch
+				Tb_Config_Radio(tx_power_dbm, lora_data_rate);
+				if (DR_CHANGE_MANUAL == 0){ // RX in Auto config
+					Tb_Set_Synch_Timer(lora_data_rate); // Configure the Timer with the Cycle DR Time
+					APP_LOG(TS_ON, VLEVEL_L, "RX SYNCH OK! - Cycle DR %d\n\r", lora_data_rate);
+				} // When in MANUAL config, DR is always kept at Default value
+			}
+			else{
+				n_tx_ctr++; // increment received packet count - reset is done in the synch timer callback
+			}
 			Testbench_State = TB_RX; // resume RX
+			HAL_Delay(50);
 			UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 			break;
 
@@ -615,6 +656,38 @@ static void Tb_Rx_Process(void){
 
 }
 
+void Tb_Set_Synch_Timer(uint8_t cycle_lora_data_rate){
+	uint32_t rx_synch_timer_value_ms;
+	switch(cycle_lora_data_rate){
+		case 0:
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			break;
+		case 1:
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0; //TODO
+			break;
+		case 2:
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			break;
+		case 3:
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			break;
+		case 4:
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			break;
+		case 5:
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			break;
+		case 6:
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			break;
+		default:
+			APP_LOG(TS_OFF, VLEVEL_M, "RX SYNCH: DATA RATE OUT OF RANGE\n\r");
+			break;
+	}
+	UTIL_TIMER_SetPeriod(&timerRxSynch, rx_synch_timer_value_ms);
+	UTIL_TIMER_Start(&timerRxSynch);
+}
+
 
 static void Tb_OnTimerRxSynch(void *context){
 	uint32_t cycle_end_timestamp;
@@ -626,45 +699,8 @@ static void Tb_OnTimerRxSynch(void *context){
 	APP_LOG(TS_ON, VLEVEL_L, "Cycle END - Packets Received (%d) - Cycle Time %ds%03d\n\r",
 			n_tx_ctr, deltaInt, deltaDec);
 	n_tx_ctr = 0; // reset counter
-	if (lora_data_rate < MAX_LORA_DR){
-		lora_data_rate++;
-		Tb_Config_Radio(tx_power_dbm, lora_data_rate); // Configure Radio with the next DR value
-		// Configure Synch Timer for the next DR value
-		// TODO MOVE THIS TO Tb_OnRxDone - Timer must be set from the Synch State
-		switch(lora_data_rate){
-					case 0:
-						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
-						break;
-					case 1:
-						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
-						break;
-					case 2:
-						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
-						break;
-					case 3:
-						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
-						break;
-					case 4:
-						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
-						break;
-					case 5:
-						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
-						break;
-					case 6:
-						rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
-						break;
-					default:
-						APP_LOG(TS_OFF, VLEVEL_M, "RX SYNCH: DATA RATE OUT OF RANGE\n\r");
-					    break;
-				}
-			UTIL_TIMER_SetPeriod(&timerRxSynch, rx_synch_timer_value_ms);
-			UTIL_TIMER_Start(&timerRxSynch);
-
-			Testbench_State = TB_RX; // resume RX
-	}
-	else if (lora_data_rate == MAX_LORA_DR){
-		Testbench_State = TB_END;
-	}
+	lora_data_rate++; // Set Data Rate for next Cycle
+	Testbench_State = TB_RX_SYNCH; // run synch again
 
 	UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 }
