@@ -68,7 +68,7 @@ typedef enum
  * 	the Radio DR config. In this mode, the Radio will remain DEFAULT_DATA_RATE, listening to
  * 	incoming packets.
  * */
-#define DR_CHANGE_MANUAL	1	// 0 for Auto mode, else Manual Mode
+#define DR_CHANGE_MANUAL	0	// 0 for Auto mode, else Manual Mode
 
 #define MAX_LORA_DR				6  // the testbench will evaluate DR0 to DR6 from RP002-1.0.0 EU863-870 Data Rate
 #define DEFAULT_DATA_RATE		5
@@ -83,6 +83,8 @@ typedef enum
 #define MAX_SYNCH_RETRIES	20
 // RX CYCLE TIME CONFIGURATION
 #define RX_CYCLE_TIME_DR0	20000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR5	5000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR6	2000 // HARDCODED IN MS
 
 /* Configurations */
 /*Timeout*/
@@ -413,7 +415,11 @@ static void Tb_OnRxTimeout(void)
 	  if (synch_retransmit_ctr == MAX_SYNCH_RETRIES){
 		  synch_retransmit_ctr = 0;
 		  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxTimeout - RX SYNCH TIMEOUT MAX RETRIES CTR: %d\n\r", synch_retransmit_ctr);
-		  Testbench_State = TB_WAIT_USER_TRIG; // max retries reached - wait for user input
+		  //Testbench_State = TB_WAIT_USER_TRIG; // max retries reached - wait for user input
+		  /** FOR TEST ONLY !!!!!!!**/
+		  rx_synch_flag = true;
+		  Testbench_State = TB_RX_DONE;
+		  /** FOR TEST ONLY !!!!!!!**/
 	  }
 	  else{
 		  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxTimeout - RX SYNCH TIMEOUT CTR: %d\n\r", synch_retransmit_ctr);
@@ -589,6 +595,7 @@ static void Tb_Rx_Process(void){
 			break;
 
 		case TB_RX_SYNCH:
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
 			if (rx_synch_flag == false){
 				Radio.Sleep();
 				memset(BufferTx, 0x0, MAX_APP_BUFFER_SIZE); // clear buffer
@@ -657,7 +664,7 @@ static void Tb_Rx_Process(void){
 }
 
 void Tb_Set_Synch_Timer(uint8_t cycle_lora_data_rate){
-	uint32_t rx_synch_timer_value_ms;
+	uint32_t rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
 	switch(cycle_lora_data_rate){
 		case 0:
 			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
@@ -675,10 +682,10 @@ void Tb_Set_Synch_Timer(uint8_t cycle_lora_data_rate){
 			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
 			break;
 		case 5:
-			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR5;
 			break;
 		case 6:
-			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR6;
 			break;
 		default:
 			APP_LOG(TS_OFF, VLEVEL_M, "RX SYNCH: DATA RATE OUT OF RANGE\n\r");
@@ -692,15 +699,20 @@ void Tb_Set_Synch_Timer(uint8_t cycle_lora_data_rate){
 static void Tb_OnTimerRxSynch(void *context){
 	uint32_t cycle_end_timestamp;
 	cycle_end_timestamp = HAL_GetTick();
-	float delta = (cycle_end_timestamp - cycle_start_timestamp)/1024;
+	float delta = (float)(cycle_end_timestamp - cycle_start_timestamp)/1024;
 	int deltaInt = (int)delta;
 	int deltaDec = (int)((delta - deltaInt) * 1000);
 	// This function is called at the end of a Full TX Power Cycle - Move to Next LoRa Data Rate
 	APP_LOG(TS_ON, VLEVEL_L, "Cycle END - Packets Received (%d) - Cycle Time %ds%03d\n\r",
 			n_tx_ctr, deltaInt, deltaDec);
 	n_tx_ctr = 0; // reset counter
-	lora_data_rate++; // Set Data Rate for next Cycle
-	Testbench_State = TB_RX_SYNCH; // run synch again
+	if (lora_data_rate == MAX_LORA_DR){
+		Testbench_State = TB_END; // all DR cycles completed
+	}
+	else{
+		lora_data_rate++; // Set Data Rate for next Cycle
+		Testbench_State = TB_RX_SYNCH; // run synch again
+	}
 
 	UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 }
