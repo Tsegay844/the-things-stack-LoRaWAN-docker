@@ -58,37 +58,52 @@ typedef enum
 /* USER CODE BEGIN PD */
 // TESTBENCH
 #define TEST_MODE_CFG		1  // 0 for TX Mode, else RX Mode
-
-/** DR_CHANGE_MANUAL is used to set the test automatic radio reconfiguration
- * 	In Tx Mode, when in Manual Mode,  the program stops at the end of each Power cycle.
- * 	The user then must use button2 (Push Button 2) to continue the test.
- * 	After pressing the button, the program then Configures the Radio with the next DR value
- * 	and starts a new Power Cycle.
- * 	In Rx Mode, when in Manual Mode, the program does not star the Synch Timer, used to change
- * 	the Radio DR config. In this mode, the Radio will remain DEFAULT_DATA_RATE, listening to
- * 	incoming packets.
- * */
 #define DR_CHANGE_MANUAL	0	// 0 for Auto mode, else Manual Mode
+/** DR_CHANGE_MANUAL is used to set the test automatic radio reconfiguration
+ * 	TX Mode, Manual:
+ * 	The program stops at the end of each Power cycle. The user then must use button2 (Push Button 2) to continue the test.
+ * 	After pressing the button, the program then Configures the Radio with the next DR value and starts a new cycle.
+ * 	TX Mode, Auto:
+ * 	After every DR cycle, the program returns to the synch state, waiting for the synch frame.
+ * 	RX Mode, Manual:
+ * 	The program will wait for the user to push button1 to start a new synch process with the TX node.
+ * 	TX Mode, Auto:
+ * 	The next synch process is started immediately after the synch Timer expires.
+ * */
+
 
 #define MAX_LORA_DR				6  // the testbench will evaluate DR0 to DR6 from RP002-1.0.0 EU863-870 Data Rate
-#define DEFAULT_DATA_RATE		3
+#define DEFAULT_DATA_RATE		0
 #define MAX_TX_OUTPUT_POWER		16	/* dBm */
 #define MIN_TX_OUTPUT_POWER		6	/* dBm */
 #define DEFAULT_TX_OUTPUT_POWER		14	/* dBm */
 
 #define TEST_TX_POWER_STEP			2	// dBm step when changing TX power
 #define TEST_TX_PKT_INTERVAL_MS		200  // delay added after every transmission (in ms)
-#define TEST_N_PKTS		3	// number of packets sent every cycle (uint16_t)
+#define TEST_N_PKTS		10	// number of packets sent every cycle (uint16_t)
 #define TB_PAYLOAD_LEN	64 	// bytes
 #define MAX_SYNCH_RETRIES	5
 // RX CYCLE TIME CONFIGURATION
-#define RX_CYCLE_TIME_DR0	6000 // HARDCODED IN MS
-#define RX_CYCLE_TIME_DR5	5000 // HARDCODED IN MS
-#define RX_CYCLE_TIME_DR6	2000 // HARDCODED IN MS
+/** TOA is measured in the TX testing **/
+#define TOA_DR0_64BYTES	3220
+#define TOA_DR1_64BYTES	1810
+#define TOA_DR2_64BYTES	809
+#define TOA_DR3_64BYTES	453
+#define TOA_DR4_64BYTES	254
+#define TOA_DR5_64BYTES	141
+#define TOA_DR6_64BYTES	73
+
+#define RX_CYCLE_TIME_DR0	5*(TEST_N_PKTS*(TOA_DR0_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR1	5*(TEST_N_PKTS*(TOA_DR1_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR2	5*(TEST_N_PKTS*(TOA_DR2_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR3	5*(TEST_N_PKTS*(TOA_DR3_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR4	5*(TEST_N_PKTS*(TOA_DR4_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR5	5*(TEST_N_PKTS*(TOA_DR5_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR6	5*(TEST_N_PKTS*(TOA_DR6_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
 
 /* Configurations */
 /*Timeout*/
-#define RX_TIMEOUT_VALUE              300 // Used For Synch State (0 for continuous)
+#define RX_TIMEOUT_VALUE              4000 // Used For Synch State (0 for continuous)
 #define TX_TIMEOUT_VALUE              10000
 
 /*Size of the payload to be sent*/
@@ -354,7 +369,7 @@ static void Tb_OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t Lo
   /* Record Received Signal Strength*/
   // RssiValue = rssi;
   /* Record payload content*/
-  APP_LOG(TS_ON, VLEVEL_L, "RSSI=%ddBm; SNR=%ddB; PAYLOAD(%d): KEY(%x%x%x) CTR(%02x%02x) DR(%02x) TXPWR(%02x)\n\r",
+  APP_LOG(TS_ON, VLEVEL_L, "RSSI=%ddBm; SNR=%ddB; PAYLOAD(%d): KEY(%x%x%x) CTR(%02x%02x) DR(%02x) TXPWR(%02x)\r",
 		  rssi, LoraSnr_FskCfo, size,
 		  BufferRx[0], BufferRx[1], BufferRx[2], BufferRx[4], BufferRx[3], BufferRx[5], BufferRx[6]);
 
@@ -366,6 +381,7 @@ static void Tb_OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t Lo
     	// check payload key value
     	if (BufferRx[0] == 0xaf){
     		tx_synch_flag = true; // Received Cycle synch frame
+    		lora_data_rate = BufferRx[1]; // DR is set by the RX node
     		APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxDone - TX SYNCH OK - SENDING REPLY\n\r");
     	}
     	else{
@@ -460,7 +476,8 @@ static void Tb_Tx_Process(void){
 			}
 			else{ // Received Cycle start frame
 				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
-				HAL_Delay(200);
+				Radio.Sleep();
+				HAL_Delay(80);
 				memset(BufferTx, 0x0, MAX_APP_BUFFER_SIZE); // clear buffer
 				BufferTx[0] = 0xbf; // key for synch frame
 				Radio.Send(BufferTx, TB_PAYLOAD_LEN); // send REPLY synch frame - callback set FSM to TB_RX
@@ -504,7 +521,7 @@ static void Tb_Tx_Process(void){
 				tx_synch_flag = false; // reset synch flag - once the cycle ends TX Node needs to be re-synch for the next DR
 				n_tx_ctr = 0;
 				// Configure the Radio for the Next DR Cycle - Start from default PWR
-				Tb_Config_Radio(DEFAULT_TX_OUTPUT_POWER, lora_data_rate);
+				Tb_Config_Radio(tx_power_dbm, lora_data_rate);
 				Testbench_State = TB_TX;
 			}
 			else if (n_tx_ctr < TEST_N_PKTS){ // continue TX
@@ -526,15 +543,16 @@ static void Tb_Tx_Process(void){
 				}
 				else if (tx_power_dbm == MIN_TX_OUTPUT_POWER && lora_data_rate < MAX_LORA_DR){ // completed all PWR cycles
 					tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
-					lora_data_rate++; // increase DR for next Cycle
+					// lora_data_rate++;//REMOVED - The Next DR value is set based on the value sent by the RX Node in the synch frame
+					HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET); // BLUE Led
 					HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
 					if(DR_CHANGE_MANUAL == 0){ // Auto config
 						tx_synch_flag = false;
 						Testbench_State = TB_TX_SYNCH; // Return To synch State
-						//HAL_Delay(2000);
 					}
-					else{ // Manual config - Next DR is set after button2 is pressed
-						Tb_Config_Radio(DEFAULT_TX_OUTPUT_POWER, lora_data_rate);
+					else{ // Manual config - Next DR is set after button2 is pressed - NO SYNCH is used
+						lora_data_rate++;
+						Tb_Config_Radio(tx_power_dbm, lora_data_rate);
 						Testbench_State = TB_TX;
 						button2_event = 0;
 						while(button2_event == 0){ // wait for button2 to be pressed
@@ -543,7 +561,7 @@ static void Tb_Tx_Process(void){
 						HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
 					}
 				}
-				else if (tx_power_dbm == MIN_TX_OUTPUT_POWER && lora_data_rate == MAX_LORA_DR){ // completed all PWR OUTPUT AND DR CHANGES
+				else if (tx_power_dbm == MIN_TX_OUTPUT_POWER && lora_data_rate == MAX_LORA_DR){
 					Testbench_State = TB_END;
 				}
 				else {
@@ -659,16 +677,16 @@ void Tb_Set_Synch_Timer(uint8_t cycle_lora_data_rate){
 			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
 			break;
 		case 1:
-			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0; //TODO
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR1;
 			break;
 		case 2:
-			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR2;
 			break;
 		case 3:
-			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR3;
 			break;
 		case 4:
-			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR0;
+			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR4;
 			break;
 		case 5:
 			rx_synch_timer_value_ms = RX_CYCLE_TIME_DR5;
@@ -724,9 +742,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   {
     button1_event = 1;
   }
-  else if (GPIO_Pin == BUTTON_SW2_PIN)
+  else if (GPIO_Pin == BUTTON_SW2_PIN && Testbench_State == TB_TX_DONE)
   {
 	  button2_event = 1;
   }
+
 }
 /* USER CODE END PrFD */
