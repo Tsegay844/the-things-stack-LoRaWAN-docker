@@ -80,26 +80,35 @@ typedef enum
 
 #define TEST_TX_POWER_STEP			2	// dBm step when changing TX power
 #define TEST_TX_PKT_INTERVAL_MS		200  // delay added after every transmission (in ms)
-#define TEST_N_PKTS		10	// number of packets sent every cycle (uint16_t)
-#define TB_PAYLOAD_LEN	64 	// bytes
-#define MAX_SYNCH_RETRIES	5
+#define TEST_N_PKTS		200	// number of packets sent every cycle (uint16_t)
+#define TB_PAYLOAD_LEN	16 	// bytes
+#define MAX_SYNCH_RETRIES	10
 // RX CYCLE TIME CONFIGURATION
 /** TOA is measured in the TX testing **/
-#define TOA_DR0_64BYTES	3220
-#define TOA_DR1_64BYTES	1810
-#define TOA_DR2_64BYTES	809
-#define TOA_DR3_64BYTES	453
-#define TOA_DR4_64BYTES	254
-#define TOA_DR5_64BYTES	141
-#define TOA_DR6_64BYTES	73
+#define TOA_DR0_64BYTES	3220+5
+#define TOA_DR1_64BYTES	1810+5
+#define TOA_DR2_64BYTES	809+5
+#define TOA_DR3_64BYTES	453+5
+#define TOA_DR4_64BYTES	254+5
+#define TOA_DR5_64BYTES	141+5
+#define TOA_DR6_64BYTES	73+5
 
-#define RX_CYCLE_TIME_DR0	5*(TEST_N_PKTS*(TOA_DR0_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
-#define RX_CYCLE_TIME_DR1	5*(TEST_N_PKTS*(TOA_DR1_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
-#define RX_CYCLE_TIME_DR2	5*(TEST_N_PKTS*(TOA_DR2_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
-#define RX_CYCLE_TIME_DR3	5*(TEST_N_PKTS*(TOA_DR3_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
-#define RX_CYCLE_TIME_DR4	5*(TEST_N_PKTS*(TOA_DR4_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
-#define RX_CYCLE_TIME_DR5	5*(TEST_N_PKTS*(TOA_DR5_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
-#define RX_CYCLE_TIME_DR6	5*(TEST_N_PKTS*(TOA_DR6_64BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+/** TOA is measured in the TX testing **/
+#define TOA_DR0_16BYTES	1454+5
+#define TOA_DR1_16BYTES	729+5
+#define TOA_DR2_16BYTES	367+5
+#define TOA_DR3_16BYTES	185+5
+#define TOA_DR4_16BYTES	107+5
+#define TOA_DR5_16BYTES	62+5
+#define TOA_DR6_16BYTES	33+5
+
+#define RX_CYCLE_TIME_DR0	5*(TEST_N_PKTS*(TOA_DR0_16BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR1	5*(TEST_N_PKTS*(TOA_DR1_16BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR2	5*(TEST_N_PKTS*(TOA_DR2_16BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR3	5*(TEST_N_PKTS*(TOA_DR3_16BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR4	5*(TEST_N_PKTS*(TOA_DR4_16BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR5	5*(TEST_N_PKTS*(TOA_DR5_16BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
+#define RX_CYCLE_TIME_DR6	5*(TEST_N_PKTS*(TOA_DR6_16BYTES+TEST_TX_PKT_INTERVAL_MS))+1000 // HARDCODED IN MS
 
 /* Configurations */
 /*Timeout*/
@@ -369,7 +378,7 @@ static void Tb_OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t Lo
   /* Record Received Signal Strength*/
   // RssiValue = rssi;
   /* Record payload content*/
-  APP_LOG(TS_ON, VLEVEL_L, "RSSI=%ddBm; SNR=%ddB; PAYLOAD(%d): KEY(%x%x%x) CTR(%02x%02x) DR(%02x) TXPWR(%02x)\r",
+  APP_LOG(TS_ON, VLEVEL_L, "RSSI=%04ddBm; SNR=%03ddB; PAYLOAD(%d): KEY(%x%x%x) CTR(%02x%02x) DR(%02x) TXPWR(%02x)\r",
 		  rssi, LoraSnr_FskCfo, size,
 		  BufferRx[0], BufferRx[1], BufferRx[2], BufferRx[4], BufferRx[3], BufferRx[5], BufferRx[6]);
 
@@ -411,9 +420,9 @@ static void Tb_OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t Lo
 static void Tb_OnRxError(void)
 {
   /* USER CODE BEGIN OnRxError */
-  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxError: PKT ERROR\n\r");
+  APP_LOG(TS_ON, VLEVEL_L, "Tb_OnRxError: PKT ERROR\r");
   /* Update the State of the FSM*/
-  Testbench_State = TB_ERROR;
+  // Testbench_State = TB_ERROR;
   /* Run PingPong process in background*/
   UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
   /* USER CODE END OnRxError */
@@ -464,7 +473,14 @@ static void Tb_Tx_Process(void){
 			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET); // BLUE Led
 
 			tx_synch_flag = false;
-			Testbench_State = TB_TX_SYNCH;
+			if(DR_CHANGE_MANUAL == 0){ // Auto config
+				Testbench_State = TB_TX_SYNCH;
+			}
+			else{
+				Testbench_State = TB_TX;
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
+			}
+
 			UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 			break;
 
@@ -536,10 +552,10 @@ static void Tb_Tx_Process(void){
 				APP_LOG(TS_ON, VLEVEL_L, "Cycle END - PWR=%d dBm - DR %d\r - Total time: %ds%03d",
 						tx_power_dbm, lora_data_rate, deltaInt, deltaDec);
 				n_tx_ctr = 0; // reset pkt counter
-				Testbench_State = TB_TX; // return to TX state
 				if (tx_power_dbm > MIN_TX_OUTPUT_POWER){
 					tx_power_dbm = tx_power_dbm - TEST_TX_POWER_STEP;
 					Tb_Config_Radio(tx_power_dbm, lora_data_rate); // decrease TX OUTPUT POWER, same DR
+					Testbench_State = TB_TX; // return to TX state - resume test on next PWR config
 				}
 				else if (tx_power_dbm == MIN_TX_OUTPUT_POWER && lora_data_rate < MAX_LORA_DR){ // completed all PWR cycles
 					tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
@@ -553,16 +569,27 @@ static void Tb_Tx_Process(void){
 					else{ // Manual config - Next DR is set after button2 is pressed - NO SYNCH is used
 						lora_data_rate++;
 						Tb_Config_Radio(tx_power_dbm, lora_data_rate);
-						Testbench_State = TB_TX;
 						button2_event = 0;
+						HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET); // BLUE Led
 						while(button2_event == 0){ // wait for button2 to be pressed
 							__NOP();
 						};
+						Testbench_State = TB_TX; // return to TX state - resume test on next DR config
+						HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET); // BLUE Led
 						HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
 					}
 				}
 				else if (tx_power_dbm == MIN_TX_OUTPUT_POWER && lora_data_rate == MAX_LORA_DR){
-					Testbench_State = TB_END;
+					if(DR_CHANGE_MANUAL == 0){ // Auto config
+						tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
+						HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET); // BLUE Led
+						HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
+						Testbench_State = TB_TX_SYNCH; // This allows new cycles to be programmed remotely by the RX Node
+					}
+					else{
+						Testbench_State = TB_END;
+					}
+
 				}
 				else {
 					Testbench_State = TB_ERROR; // Error
@@ -658,7 +685,7 @@ static void Tb_Rx_Process(void){
 
 		case TB_ERROR:
 			APP_LOG(TS_ON, VLEVEL_L, "TEST ERROR\n\r");
-			UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
+			// UTIL_SEQ_SetTask((1 << CFG_SEQ_Task_SubGHz_Phy_App_Process), CFG_SEQ_Prio_0);
 			HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); // RED Led
 			break;
 
