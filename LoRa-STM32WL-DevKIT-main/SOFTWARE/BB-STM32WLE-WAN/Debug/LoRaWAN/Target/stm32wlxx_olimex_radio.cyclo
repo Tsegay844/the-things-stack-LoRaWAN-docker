@@ -1,0 +1,7 @@
+stm32wlxx_ll_bus.h:449:22:LL_AHB2_GRP1_EnableClock	1
+stm32wlxx_olimex_radio.c:46:9:BSP_RADIO_Init	1
+stm32wlxx_olimex_radio.c:76:9:BSP_RADIO_DeInit	1
+stm32wlxx_olimex_radio.c:102:9:BSP_RADIO_ConfigRFSwitch	5
+stm32wlxx_olimex_radio.c:148:9:BSP_RADIO_GetTxConfig	1
+stm32wlxx_olimex_radio.c:160:9:BSP_RADIO_IsTCXO	1
+stm32wlxx_olimex_radio.c:172:9:BSP_RADIO_IsDCDC	1

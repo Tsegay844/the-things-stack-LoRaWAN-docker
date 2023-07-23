@@ -1,0 +1,14 @@
+stm32wlxx_ll_bus.h:449:22:LL_AHB2_GRP1_EnableClock	1
+stm32wlxx_olimex.c:115:10:BSP_GetVersion	1
+stm32wlxx_olimex.c:133:9:BSP_LED_Init	1
+stm32wlxx_olimex.c:162:9:BSP_LED_DeInit	1
+stm32wlxx_olimex.c:182:9:BSP_LED_On	1
+stm32wlxx_olimex.c:198:9:BSP_LED_Off	1
+stm32wlxx_olimex.c:214:9:BSP_LED_Toggle	1
+stm32wlxx_olimex.c:230:9:BSP_LED_GetState	1
+stm32wlxx_olimex.c:257:9:BSP_PB_Init	3
+stm32wlxx_olimex.c:305:9:BSP_PB_DeInit	1
+stm32wlxx_olimex.c:322:9:BSP_PB_GetState	1
+stm32wlxx_olimex.c:332:6:BSP_PB_IRQHandler	1
+stm32wlxx_olimex.c:346:13:BSP_PB_Callback	1
+stm32wlxx_olimex.c:579:13:BUTTON_SW1_EXTI_Callback	1

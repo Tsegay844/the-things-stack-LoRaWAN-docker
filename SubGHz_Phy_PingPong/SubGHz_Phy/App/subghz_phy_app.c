@@ -63,26 +63,30 @@ typedef enum
  * 	TX Mode, Manual:
  * 	The program stops at the end of each Power cycle. The user then must use button2 (Push Button 2) to continue the test.
  * 	After pressing the button, the program then Configures the Radio with the next DR value and starts a new cycle.
+ *
  * 	TX Mode, Auto:
  * 	After every DR cycle, the program returns to the synch state, waiting for the synch frame.
+ *
  * 	RX Mode, Manual:
  * 	The program will wait for the user to push button1 to start a new synch process with the TX node.
- * 	TX Mode, Auto:
- * 	The next synch process is started immediately after the synch Timer expires.
+ *
+ * 	RX Mode, Auto:
+ * 	The next synch process is started immediately after the cycle Timer expires.
  * */
 
 
 #define MAX_LORA_DR				6  // the testbench will evaluate DR0 to DR6 from RP002-1.0.0 EU863-870 Data Rate
 #define DEFAULT_DATA_RATE		0
+#define DATA_RATE_OFFSET		0  // The RX DR cycle starts in DR0 + Offset
 #define MAX_TX_OUTPUT_POWER		16	/* dBm */
 #define MIN_TX_OUTPUT_POWER		6	/* dBm */
 #define DEFAULT_TX_OUTPUT_POWER		14	/* dBm */
 
 #define TEST_TX_POWER_STEP			2	// dBm step when changing TX power
-#define TEST_TX_PKT_INTERVAL_MS		200  // delay added after every transmission (in ms)
-#define TEST_N_PKTS		200	// number of packets sent every cycle (uint16_t)
+#define TEST_TX_PKT_INTERVAL_MS		150  // delay added after every transmission (in ms)
+#define TEST_N_PKTS		100	// number of packets sent every cycle (uint16_t)
 #define TB_PAYLOAD_LEN	16 	// bytes
-#define MAX_SYNCH_RETRIES	10
+#define MAX_SYNCH_RETRIES	50
 // RX CYCLE TIME CONFIGURATION
 /** TOA is measured in the TX testing **/
 #define TOA_DR0_64BYTES	3220+5
@@ -135,8 +139,8 @@ static RadioEvents_t RadioEvents;
 
 /* USER CODE BEGIN PV */
 //TESTBENCH
-uint8_t tx_power_dbm = DEFAULT_TX_OUTPUT_POWER;
-uint8_t lora_data_rate = DEFAULT_DATA_RATE;
+uint8_t tx_power_dbm = DEFAULT_TX_OUTPUT_POWER; // TB initial Pwr value
+uint8_t lora_data_rate = DEFAULT_DATA_RATE + DATA_RATE_OFFSET; // TB initial DR value
 int synch_retransmit_ctr = 0; // in Rx Mode, counts the number of packets sent during the synch process
 int n_tx_ctr = 0; // in TX Mode, counts pkts sent per Cycle. In RX mode, counts pkts received per Cycle
 static Testbench_States_t Testbench_State = TB_WAIT_USER_TRIG;
@@ -225,7 +229,7 @@ void SubghzApp_Init(void)
   /* Radio Set frequency */
   Radio.SetChannel(RF_FREQUENCY);
   /* Radio configuration */
-  Tb_Config_Radio(DEFAULT_TX_OUTPUT_POWER, DEFAULT_DATA_RATE);
+  // Tb_Config_Radio(DEFAULT_TX_OUTPUT_POWER, DEFAULT_DATA_RATE);
 
   Radio.SetMaxPayloadLength(MODEM_LORA, MAX_APP_BUFFER_SIZE);
   /*fills tx buffer*/
