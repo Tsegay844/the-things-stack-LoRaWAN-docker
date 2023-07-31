@@ -58,8 +58,8 @@ dkms.conf
 # End of https://www.toptal.com/developers/gitignore/api/c
 
 # STM32 CUBE IDE
-.project
-.launch
-.prefs
-.list
-.cyclo
+# .project
+# .launch
+# .prefs
+# .list
+# .cyclo
