@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (10.3-2021.10)
+# Toolchain: GNU Tools for STM32 (11.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -66,8 +66,8 @@ all: main-build
 main-build: SubGHz_Testbench.elf secondary-outputs
 
 # Tool invocations
-SubGHz_Testbench.elf SubGHz_Testbench.map: $(OBJS) $(USER_OBJS) C:\Users\bruno.USER-PC\Desktop\workspace_1.12.0\SubGHz_Testbench\STM32CubeIDE\STM32WL55JCIX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "SubGHz_Testbench.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\bruno.USER-PC\Desktop\workspace_1.12.0\SubGHz_Testbench\STM32CubeIDE\STM32WL55JCIX_FLASH.ld" --specs=nosys.specs -Wl,-Map="SubGHz_Testbench.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+SubGHz_Testbench.elf SubGHz_Testbench.map: $(OBJS) $(USER_OBJS) /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/SubGHz_Testbench/STM32CubeIDE/STM32WL55JCIX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "SubGHz_Testbench.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/SubGHz_Testbench/STM32CubeIDE/STM32WL55JCIX_FLASH.ld" --specs=nosys.specs -Wl,-Map="SubGHz_Testbench.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
