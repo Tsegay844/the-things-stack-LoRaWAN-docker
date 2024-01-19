@@ -1,2 +1,2 @@
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacParser.c:36:23:LoRaMacParserJoinAccept	5
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacParser.c:80:23:LoRaMacParserData	4
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacParser.c:36:23:LoRaMacParserJoinAccept	5
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacParser.c:80:23:LoRaMacParserData	4

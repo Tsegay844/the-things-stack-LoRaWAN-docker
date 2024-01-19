@@ -567,6 +567,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* Private functions ---------------------------------------------------------*/
 /* USER CODE BEGIN PrFD */
 
+static void Thd_Read_Sensor(void *argument){
+	UNUSED(argument);
+	for (;;)
+	{
+      HAL_Delay(1000);
+      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
+      APP_LOG(TS_OFF, VLEVEL_M, "READ SENSOR TRIGGER\r\n");
+      hal_read_sensor_data(&sensor_data_buff);
+      int int_temp_data = (int)sensor_data_buff.temp;
+      int decimal_temp_data = (int)((sensor_data_buff.temp - int_temp_data) * 100);
+      APP_LOG(TS_OFF, VLEVEL_M, "TEMP: %d.%02d \r\n", int_temp_data, decimal_temp_data);
+
+      HAL_Delay(50);
+      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
+	}
+}
 /* USER CODE END PrFD */
 
 static void Thd_LmHandlerProcess(void *argument)
@@ -1159,20 +1175,5 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
   /* USER CODE END OnRestoreContextRequest_Last */
 }
 
-static void Thd_Read_Sensor(void *argument){
-	UNUSED(argument);
-	for (;;)
-	{
-      HAL_Delay(1000);
-      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
-      APP_LOG(TS_OFF, VLEVEL_M, "READ SENSOR TRIGGER\r\n");
-      hal_read_sensor_data(&sensor_data_buff);
-      int integerPart = (int)sensor_data_buff.temp;
-      int decimalPart = (int)((sensor_data_buff.temp - integerPart) * 10);
-      APP_LOG(TS_OFF, VLEVEL_M, "%d.%01d\r\n", integerPart, decimalPart);
 
-      HAL_Delay(50);
-      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
-	}
-}
 

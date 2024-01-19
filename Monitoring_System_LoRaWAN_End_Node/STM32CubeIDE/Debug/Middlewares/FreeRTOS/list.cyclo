@@ -1,5 +1,5 @@
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:37:6:vListInitialise	1
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:62:6:vListInitialiseItem	1
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:74:6:vListInsertEnd	1
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:103:6:vListInsert	3
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:170:13:uxListRemove	2
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:37:6:vListInitialise	1
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:62:6:vListInitialiseItem	1
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:74:6:vListInsertEnd	1
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:103:6:vListInsert	3
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/FreeRTOS/Source/list.c:170:13:uxListRemove	2

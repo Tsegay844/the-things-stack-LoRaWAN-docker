@@ -1,7 +1,7 @@
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:219:13:WakeUpTimer_Cb	1
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:225:17:app_freertos_ms_to_tick	1
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:235:17:app_freertos_tick_to_ms	1
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:204:6:StartDefaultTask	1
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:97:6:PreSleepProcessing	1
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:126:6:PostSleepProcessing	2
-/home/brunocasu/STM32CubeIDE/workspace_1.14.0/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:161:6:MX_FREERTOS_Init	1
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:219:13:WakeUpTimer_Cb	1
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:225:17:app_freertos_ms_to_tick	1
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:235:17:app_freertos_tick_to_ms	1
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:204:6:StartDefaultTask	1
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:97:6:PreSleepProcessing	1
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:126:6:PostSleepProcessing	2
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/app_freertos.c:161:6:MX_FREERTOS_Init	1
