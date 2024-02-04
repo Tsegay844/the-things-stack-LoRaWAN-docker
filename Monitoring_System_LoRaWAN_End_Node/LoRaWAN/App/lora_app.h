@@ -34,11 +34,20 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
-// sensor buffer struct - must be implemented by the user
+// sensor buffer struct - implemented by the user
 struct sensor_data_t{
 	float temp;
 	float r_hum;
+	unsigned short status_reg;
 };
+
+// sensor status
+typedef enum
+{
+	SENSOR_STATUS_UNINITIALIZED,
+	SENSOR_STATUS_OK,
+	SENSOR_STATUS_ERROR
+} sensor_status_t;
 
 /* USER CODE END ET */
 
@@ -185,8 +194,13 @@ struct sensor_data_t{
 void LoRaWAN_Init(void);
 
 /* USER CODE BEGIN EFP */
-// read sensor function prototype - must be implemented by the user
-void hal_read_sensor_data(struct sensor_data_t* data_buff);
+
+// Sensor function to be implemented by the user
+// Read sensor function prototype
+sensor_status_t app_read_sensor_data(struct sensor_data_t* data_buff);
+// Reset sensor function prototoype
+sensor_status_t app_reset_sensor(struct sensor_data_t* data_buff);
+
 /* USER CODE END EFP */
 
 #ifdef __cplusplus

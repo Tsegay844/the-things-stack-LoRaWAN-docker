@@ -11,61 +11,66 @@
 #include "sys_app.h"
 
 
-#define SHT3X_I2C_TIMEOUT 300
-#define SHT3X_I2C_DEVICE_ADDRESS_ADDR_PIN_HIGH 0x45
+#define SHT30_I2C_TIMEOUT 300
+#define SHT30_I2C_ADDR_PIN_HIGH 0x45
+// #define SHT30_I2C_ADDR_PIN_LOW 0x44
 
-/**
- * Registers addresses.
- */
-typedef enum
-{
-	SHT3X_COMMAND_MEASURE_HIGHREP_STRETCH = 0x2c06,
-	SHT3X_COMMAND_CLEAR_STATUS = 0x3041,
-	SHT3X_COMMAND_SOFT_RESET = 0x30A2,
-	SHT3X_COMMAND_HEATER_ENABLE = 0x306d,
-	SHT3X_COMMAND_HEATER_DISABLE = 0x3066,
-	SHT3X_COMMAND_READ_STATUS = 0xf32d,
-	SHT3X_COMMAND_FETCH_DATA = 0xe000,
-	SHT3X_COMMAND_MEASURE_HIGHREP_10HZ = 0x2737,
-	SHT3X_COMMAND_MEASURE_LOWREP_10HZ = 0x272a
-} sht3x_command_t;
+// SHT30 registers addresses and commands
+typedef enum{
+	// Single shot data acquisition mode
+	// Clock stretching enabled and High repetition mode (12.5 ms for acquiring data)
+	SHT30_COMMAND_MEASURE_SINGLE = 0x2c06,
 
-static uint8_t sht3x_calculate_crc(const uint8_t *data, size_t length);
-int sht3x_init();
-static int sht3x_send_command(sht3x_command_t command);
-static uint16_t sht3x_uint8_to_uint16(uint8_t msb, uint8_t lsb);
-int sht3x_read_temperature_and_humidity(struct sensor_data_t* data_buff);
+	// Status register read (default value should return 0x8010)
+	SHT30_COMMAND_READ_STATUS = 0xf32d,
 
-// HAL sensor function
-void hal_read_sensor_data(struct sensor_data_t* data_buff){
-	static int sht3x_init_flag = 0;
-	int ret_val = 0;
+	// Soft reset / re-initialization
+	SHT30_COMMAND_SOFT_RESET = 0x30A2,
+
+} sht30_command_t;
+
+sensor_status_t sht30_calculate_crc(const uint8_t *data, size_t length);
+sensor_status_t sht30_check_status_register(struct sensor_data_t* data_buff);
+sensor_status_t sht30_send_command(sht30_command_t command);
+sensor_status_t sht30_read_temperature_and_humidity(struct sensor_data_t* data_buff);
+static uint16_t sht30_uint8_to_uint16(uint8_t msb, uint8_t lsb);
+
+// Sensor status control
+sensor_status_t sht30_status = SENSOR_STATUS_UNINITIALIZED;
+
+// Exported HAL sensor functions
+sensor_status_t app_read_sensor_data(struct sensor_data_t* data_buff){
 	if (data_buff != NULL){
-		if (sht3x_init_flag == 0){
-			ret_val = sht3x_init();
-			if (ret_val == 1){
-				// SHT30 INIT OK
-				sht3x_init_flag = 1;
-				data_buff->temp = 33.345;
-			}
-			else {data_buff->temp = 0.1;}
+		// First reading, sensor is uninitialized
+		if (sht30_status == SENSOR_STATUS_UNINITIALIZED){
+			sht30_status = sht30_check_status_register(data_buff);
 		}
-		else{
-			sht3x_read_temperature_and_humidity(data_buff);
-			//data_buff->temp = 11.111;
-			//data_buff->r_hum = 99.9;
+		// Read sensor values
+		if (sht30_status == SENSOR_STATUS_OK){
+			sht30_status = sht30_read_temperature_and_humidity(data_buff);
 		}
-
 	}
 	else{
 		Error_Handler();
 	}
+	return sht30_status;
 }
 
-// SHT3x Functions
+sensor_status_t app_reset_sensor(struct sensor_data_t* data_buff){
+	if (sht30_send_command(SHT30_COMMAND_SOFT_RESET) == SENSOR_STATUS_OK){
+		HAL_Delay(1);
+		// Check status register to confirm if the sensor reset was OK
+		sht30_status = sht30_check_status_register(data_buff);
+	}
+	return sht30_status;
+}
 
-static uint8_t sht3x_calculate_crc(const uint8_t *data, size_t length)
-{
+// SHT30 functions
+
+/**
+ * Check CRC value
+ */
+sensor_status_t sht30_calculate_crc(const uint8_t *data, size_t length){
 	uint8_t crc = 0xff;
 	for (size_t i = 0; i < length; i++) {
 		crc ^= data[i];
@@ -77,75 +82,116 @@ static uint8_t sht3x_calculate_crc(const uint8_t *data, size_t length)
 			}
 		}
 	}
-	return crc;
-}
+	// return crc;
 
-
-static int sht3x_send_command(sht3x_command_t command)
-{
-	uint8_t command_buffer[2] = {(command & 0xff00u) >> 8u, command & 0xffu};
-
-	if (HAL_I2C_Master_Transmit(&hi2c1, SHT3X_I2C_DEVICE_ADDRESS_ADDR_PIN_HIGH << 1u, command_buffer, sizeof(command_buffer),
-	                            SHT3X_I2C_TIMEOUT) != HAL_OK) {
-		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 SEND COMMAND FAILED\r\n");
-		return 0;
+	if (crc != data[length]) {
+		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 CRC Check ERROR\r\n");
+		return SENSOR_STATUS_ERROR;
 	}
-	APP_LOG(TS_OFF, VLEVEL_M, "SHT30 SEND COMMAND OK\r\n");
-	return 1;
-}
-
-static uint16_t sht3x_uint8_to_uint16(uint8_t msb, uint8_t lsb)
-{
-	return (uint16_t)((uint16_t)msb << 8u) | lsb;
-}
-
-int sht3x_init()
-{
-	// assert(handle->i2c_handle->Init.NoStretchMode == I2C_NOSTRETCH_DISABLE);
-	// TODO: Assert i2c frequency is not too high
-
-	uint8_t status_reg_and_checksum[3];
-	if (HAL_I2C_Mem_Read(&hi2c1, SHT3X_I2C_DEVICE_ADDRESS_ADDR_PIN_HIGH << 1u, SHT3X_COMMAND_READ_STATUS, 2, (uint8_t*)&status_reg_and_checksum,
-					  sizeof(status_reg_and_checksum), SHT3X_I2C_TIMEOUT) != HAL_OK) {
-		APP_LOG(TS_OFF, VLEVEL_M, "INIT SHT30 HAL_I2C_Mem_Read FAILED\r\n");
-		return 0;
+	else{
+		return SENSOR_STATUS_OK;
 	}
-
-	uint8_t calculated_crc = sht3x_calculate_crc(status_reg_and_checksum, 2);
-
-	if (calculated_crc != status_reg_and_checksum[2]) {
-		APP_LOG(TS_OFF, VLEVEL_M, "INIT SHT30 CRC CHECK FAILED\r\n");
-		return 0;
-	}
-	APP_LOG(TS_OFF, VLEVEL_M, "INIT SHT30 OK - STATUS REG VAL: %02X %02X %02X\r\n",
-			status_reg_and_checksum[0], status_reg_and_checksum[1], status_reg_and_checksum[2]);
-	return 1;
 }
 
-int sht3x_read_temperature_and_humidity(struct sensor_data_t* data_buff)
-{
-	sht3x_send_command(SHT3X_COMMAND_MEASURE_HIGHREP_STRETCH);
+/**
+ * Check status register value
+ * Used to test if communication with the sensor is OK
+ * The status register value is included in the LoRa payload
+ */
+sensor_status_t sht30_check_status_register(struct sensor_data_t* data_buff){
+	uint8_t buff[3];
+	if (HAL_I2C_Mem_Read(&hi2c1, SHT30_I2C_ADDR_PIN_HIGH << 1u, SHT30_COMMAND_READ_STATUS, 2, (uint8_t*)&buff,
+					  sizeof(buff), SHT30_I2C_TIMEOUT) != HAL_OK) {
+		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 HAL_I2C_Mem_Read ERROR\r\n");
+		return SENSOR_STATUS_ERROR;
+	}
+	// STH30 returned values:
+	// buff[0] = MSB of status register (default 0x80)
+	// buff[1] = LSB of status register (default 0x10)
+	// buff[2] = CRC value
 
+	if(sht30_calculate_crc(buff, 2) == SENSOR_STATUS_OK){
+		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 Status register and CRC: %02X %02X %02X\r\n", buff[0], buff[1], buff[2]);
+		data_buff->status_reg = sht30_uint8_to_uint16(buff[0], buff[1]);
+		return SENSOR_STATUS_OK;
+	}
+	else{
+		return SENSOR_STATUS_ERROR;
+	}
+	//if (calculated_crc != buff[2]) {
+	//	APP_LOG(TS_OFF, VLEVEL_M, "INIT SHT30 CRC CHECK FAILED\r\n");
+	//	return 0;
+	//}
+}
+
+
+/**
+ * Send command to the SHT30 sensor
+ * I2C handle must be configured according to the Board config.
+ * I2C Device address must be configured to match the SHT30 sensor address
+ */
+sensor_status_t sht30_send_command(sht30_command_t command){
+	uint8_t command_buff[2] = {(command & 0xff00u) >> 8u, command & 0xffu};
+
+	if (HAL_I2C_Master_Transmit(&hi2c1, SHT30_I2C_ADDR_PIN_HIGH << 1u, command_buff, sizeof(command_buff),
+	                            SHT30_I2C_TIMEOUT) != HAL_OK) {
+		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 HAL_I2C_Master_Transmit ERROR\r\n");
+		return SENSOR_STATUS_ERROR;
+	}
+	else{
+		return SENSOR_STATUS_OK;
+	}
+}
+
+/**
+ * Send a single shot data acquisition command to the SHT30 sensor
+ */
+sensor_status_t sht30_read_temperature_and_humidity(struct sensor_data_t* data_buff){
+	uint8_t buff[6];
+	uint8_t temp_buff[3];
+	uint8_t r_hum_buff[3];
+	uint16_t temperature_raw;
+	uint16_t humidity_raw;
+
+	sht30_send_command(SHT30_COMMAND_MEASURE_SINGLE);
 	HAL_Delay(1);
 
-	uint8_t buffer[6];
-	if (HAL_I2C_Master_Receive(&hi2c1, SHT3X_I2C_DEVICE_ADDRESS_ADDR_PIN_HIGH << 1u, buffer, sizeof(buffer), SHT3X_I2C_TIMEOUT) != HAL_OK) {
-		return 0;
+	if (HAL_I2C_Master_Receive(&hi2c1, SHT30_I2C_ADDR_PIN_HIGH << 1u, buff, sizeof(buff), SHT30_I2C_TIMEOUT) != HAL_OK) {
+		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 HAL_I2C_Master_Receive ERROR\r\n");
+		return SENSOR_STATUS_ERROR;
 	}
 
-	uint8_t temperature_crc = sht3x_calculate_crc(buffer, 2);
-	uint8_t humidity_crc = sht3x_calculate_crc(buffer + 3, 2);
-	if (temperature_crc != buffer[2] || humidity_crc != buffer[5]) {
-		return false;
+	for(int i=0; i<3; i++){
+		temp_buff[i] = buff[i];
+		r_hum_buff[i] = buff[i+3];
 	}
 
-	uint16_t temperature_raw = sht3x_uint8_to_uint16(buffer[0], buffer[1]);
-	uint16_t humidity_raw = sht3x_uint8_to_uint16(buffer[3], buffer[4]);
+	if (sht30_calculate_crc(temp_buff, 2) != SENSOR_STATUS_OK){
+		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 Temperature data CRC ERROR\r\n");
+		return SENSOR_STATUS_ERROR;
+	}
+	else{
+		if (sht30_calculate_crc(r_hum_buff, 2) != SENSOR_STATUS_OK){
+			APP_LOG(TS_OFF, VLEVEL_M, "SHT30 Humidity data CRC ERROR\r\n");
+			return SENSOR_STATUS_ERROR;
+		}
+		else{
+			// CRC ok, convert raw data to float values
+			temperature_raw = sht30_uint8_to_uint16(buff[0], buff[1]);
+			humidity_raw = sht30_uint8_to_uint16(buff[3], buff[4]);
 
-	data_buff->temp = -45.0f + 175.0f * (float)temperature_raw / 65535.0f;
-	data_buff->r_hum = 100.0f * (float)humidity_raw / 65535.0f;
+			data_buff->temp = -45.0f + 175.0f * (float)temperature_raw / 65535.0f;
+			data_buff->r_hum = 100.0f * (float)humidity_raw / 65535.0f;
+		}
+	}
+	return SENSOR_STATUS_OK;
+}
 
-	return 1;
+/**
+ * Converts two uint8_t vars into one uint16_t var
+ */
+static uint16_t sht30_uint8_to_uint16(uint8_t msb, uint8_t lsb){
+	return (uint16_t)((uint16_t)msb << 8u) | lsb;
 }
 
 

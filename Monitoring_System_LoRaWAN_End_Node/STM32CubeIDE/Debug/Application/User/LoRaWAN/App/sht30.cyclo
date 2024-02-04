@@ -1,6 +1,7 @@
-../Application/User/LoRaWAN/App/sht30.c:67:16:sht3x_calculate_crc	4
-../Application/User/LoRaWAN/App/sht30.c:97:17:sht3x_uint8_to_uint16	1
-../Application/User/LoRaWAN/App/sht30.c:84:12:sht3x_send_command	2
-../Application/User/LoRaWAN/App/sht30.c:102:5:sht3x_init	3
-../Application/User/LoRaWAN/App/sht30.c:125:5:sht3x_read_temperature_and_humidity	4
-../Application/User/LoRaWAN/App/sht30.c:40:6:hal_read_sensor_data	4
+../Application/User/LoRaWAN/App/sht30.c:192:17:sht30_uint8_to_uint16	1
+../Application/User/LoRaWAN/App/sht30.c:72:17:sht30_calculate_crc	5
+../Application/User/LoRaWAN/App/sht30.c:100:17:sht30_check_status_register	3
+../Application/User/LoRaWAN/App/sht30.c:132:17:sht30_send_command	2
+../Application/User/LoRaWAN/App/sht30.c:58:17:app_reset_sensor	2
+../Application/User/LoRaWAN/App/sht30.c:148:17:sht30_read_temperature_and_humidity	5
+../Application/User/LoRaWAN/App/sht30.c:41:17:app_read_sensor_data	4

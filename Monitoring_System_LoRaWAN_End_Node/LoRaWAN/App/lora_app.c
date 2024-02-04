@@ -365,11 +365,12 @@ static void Thd_LmHandlerProcess(void *argument);
 
 /* USER CODE BEGIN PV */
 
+/** Monitoring application **/
+
 struct sensor_data_t sensor_data_buff;
 
-// sensor handling thread
+// Sensor handling thread
 osThreadId_t Thd_Read_SensorId;
-
 const osThreadAttr_t Thd_Read_Sensor_attr =
 {
   .name = "THD_READ_SENSOR",
@@ -381,6 +382,11 @@ const osThreadAttr_t Thd_Read_Sensor_attr =
   .stack_size = 1024
 };
 static void Thd_Read_Sensor(void *argument);
+
+// Replacing SendTxData() function
+void app_send_uplink(struct sensor_data_t* data_buff);
+
+
 
 
 /**
@@ -505,10 +511,10 @@ void LoRaWAN_Init(void)
   LmHandlerConfigure(&LmHandlerParams);
 
   /* USER CODE BEGIN LoRaWAN_Init_2 */
-  //Deactivate Join LED
-  //UTIL_TIMER_Start(&JoinLedTimer);
+  // Deactivate Join LED
+  UTIL_TIMER_Start(&JoinLedTimer);
 
-  //Create Sensor Thread
+  // Create Sensor Thread
   Thd_Read_SensorId = osThreadNew(Thd_Read_Sensor, NULL, &Thd_Read_Sensor_attr);
   if (Thd_Read_SensorId == NULL)
   {
@@ -571,17 +577,105 @@ static void Thd_Read_Sensor(void *argument){
 	UNUSED(argument);
 	for (;;)
 	{
-      HAL_Delay(1000);
-      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
-      APP_LOG(TS_OFF, VLEVEL_M, "READ SENSOR TRIGGER\r\n");
-      hal_read_sensor_data(&sensor_data_buff);
+	  uint8_t batteryLevel = GetBatteryLevel();
+      APP_LOG(TS_OFF, VLEVEL_M, "\r\nREAD SENSOR TRIGGER\r\n");
+      app_read_sensor_data(&sensor_data_buff);
       int int_temp_data = (int)sensor_data_buff.temp;
       int decimal_temp_data = (int)((sensor_data_buff.temp - int_temp_data) * 100);
       APP_LOG(TS_OFF, VLEVEL_M, "TEMP: %d.%02d \r\n", int_temp_data, decimal_temp_data);
 
+      int int_hum_data = (int)sensor_data_buff.r_hum;
+      int decimal_hum_data = (int)((sensor_data_buff.r_hum - int_hum_data) * 100);
+      APP_LOG(TS_OFF, VLEVEL_M, "HUM: %d.%02d \r\n", int_hum_data, decimal_hum_data);
+
+      APP_LOG(TS_OFF, VLEVEL_M, "STATUS REG: %04X \r\n", sensor_data_buff.status_reg);
+      APP_LOG(TS_ON, VLEVEL_M, "VDDA: %d\r\n", batteryLevel); /* 1 (very low) to 254 (fully charged) */
+
+      //HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET); // GREEN Led
       HAL_Delay(50);
-      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
+      //HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET); // GREEN Led
+      HAL_Delay(2000);
 	}
+}
+
+void app_send_uplink(struct sensor_data_t* data_buff)
+{
+  LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
+  uint8_t batteryLevel = GetBatteryLevel();
+  UTIL_TIMER_Time_t nextTxIn = 0;
+/*
+  if (LmHandlerIsBusy() == false)
+  {
+    APP_LOG(TS_ON, VLEVEL_M, "VDDA: %d\r\n", batteryLevel);
+
+    AppData.Port = LORAWAN_USER_APP_PORT;
+
+    humidity    = (uint16_t)(sensor_data.humidity * 10);
+    temperature = (int16_t)(sensor_data.temperature);
+    pressure = (uint16_t)(sensor_data.pressure * 100 / 10);
+
+    AppData.Buffer[i++] = AppLedStateOn;
+    AppData.Buffer[i++] = (uint8_t)((pressure >> 8) & 0xFF);
+    AppData.Buffer[i++] = (uint8_t)(pressure & 0xFF);
+    AppData.Buffer[i++] = (uint8_t)(temperature & 0xFF);
+    AppData.Buffer[i++] = (uint8_t)((humidity >> 8) & 0xFF);
+    AppData.Buffer[i++] = (uint8_t)(humidity & 0xFF);
+
+    if ((LmHandlerParams.ActiveRegion == LORAMAC_REGION_US915) || (LmHandlerParams.ActiveRegion == LORAMAC_REGION_AU915)
+        || (LmHandlerParams.ActiveRegion == LORAMAC_REGION_AS923))
+    {
+      AppData.Buffer[i++] = 0;
+      AppData.Buffer[i++] = 0;
+      AppData.Buffer[i++] = 0;
+      AppData.Buffer[i++] = 0;
+    }
+    else
+    {
+      latitude = sensor_data.latitude;
+      longitude = sensor_data.longitude;
+
+      AppData.Buffer[i++] = GetBatteryLevel();
+      AppData.Buffer[i++] = (uint8_t)((latitude >> 16) & 0xFF);
+      AppData.Buffer[i++] = (uint8_t)((latitude >> 8) & 0xFF);
+      AppData.Buffer[i++] = (uint8_t)(latitude & 0xFF);
+      AppData.Buffer[i++] = (uint8_t)((longitude >> 16) & 0xFF);
+      AppData.Buffer[i++] = (uint8_t)((longitude >> 8) & 0xFF);
+      AppData.Buffer[i++] = (uint8_t)(longitude & 0xFF);
+      AppData.Buffer[i++] = (uint8_t)((altitudeGps >> 8) & 0xFF);
+      AppData.Buffer[i++] = (uint8_t)(altitudeGps & 0xFF);
+    }
+
+    AppData.BufferSize = i;
+
+    if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET))
+    {
+      UTIL_TIMER_Stop(&JoinLedTimer);
+      HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
+    }
+
+    status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
+    if (LORAMAC_HANDLER_SUCCESS == status)
+    {
+      APP_LOG(TS_ON, VLEVEL_L, "SEND REQUEST\r\n");
+    }
+    else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status)
+    {
+      nextTxIn = LmHandlerGetDutyCycleWaitTime();
+      if (nextTxIn > 0)
+      {
+        APP_LOG(TS_ON, VLEVEL_L, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
+      }
+    }
+  }
+
+  if (EventType == TX_ON_TIMER)
+  {
+    UTIL_TIMER_Stop(&TxTimer);
+    UTIL_TIMER_SetPeriod(&TxTimer, MAX(nextTxIn, TxPeriodicity));
+    UTIL_TIMER_Start(&TxTimer);
+  }
+*/
+  /* USER CODE END SendTxData_1 */
 }
 /* USER CODE END PrFD */
 
