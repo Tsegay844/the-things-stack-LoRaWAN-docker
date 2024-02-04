@@ -1,1 +1,10 @@
+Serial for NUCLEO board:
 sudo minicom -b 115200 -o -D /dev/ttyACM0
+
+Check connected devices:
+sudo arp-scan -l --interface=wlan0
+
+SSH for Dragino:
+sudo ssh -o HostKeyAlgorithms=ssh-rsa root@192.168.1.17 -p 2222
+
+
