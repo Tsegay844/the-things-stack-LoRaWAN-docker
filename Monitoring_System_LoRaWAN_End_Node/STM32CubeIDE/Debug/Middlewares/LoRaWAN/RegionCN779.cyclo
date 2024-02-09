@@ -16,5 +16,6 @@
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionCN779.c:930:17:RegionCN779ChannelAdd	1
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionCN779.c:993:6:RegionCN779ChannelsRemove	1
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionCN779.c:775:8:RegionCN779NewChannelReq	7
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionCN779.c:1013:6:RegionCN779SetContinuousWave	1
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionCN779.c:1028:9:RegionCN779ApplyDrOffset	1
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionCN779.c:1043:6:RegionCN779RxBeaconSetup	1

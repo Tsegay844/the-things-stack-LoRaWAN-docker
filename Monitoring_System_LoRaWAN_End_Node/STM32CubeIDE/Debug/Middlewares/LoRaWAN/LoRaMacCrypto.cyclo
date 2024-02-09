@@ -14,7 +14,7 @@
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCrypto.c:923:23:LoRaMacCryptoInit	2
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCrypto.c:948:23:LoRaMacCryptoSetLrWanVersion	1
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCrypto.c:954:23:LoRaMacCryptoGetFCntUp	2
-/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCrypto.c:1020:23:LoRaMacCryptoGetFCntDown	6
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCrypto.c:966:23:LoRaMacCryptoGetFCntDown	8
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCrypto.c:1066:23:LoRaMacCryptoGetRJcount	1
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCrypto.c:1090:23:LoRaMacCryptoSetMulticastReference	3
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCrypto.c:1130:23:LoRaMacCryptoPrepareJoinRequest	5

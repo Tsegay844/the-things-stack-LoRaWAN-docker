@@ -36,7 +36,7 @@
 #include "flash_if.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "i2c.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -577,6 +577,7 @@ static void Thd_LoraSendProcess(void *argument)
   UNUSED(argument);
   for (;;)
   {
+	MX_I2C1_Init();
 	app_read_sensor_data(&sensor_data_buff);
 	int_temp_data = (int)sensor_data_buff.temp;
 	decimal_temp_data = (int)((sensor_data_buff.temp - int_temp_data) * 100);
@@ -587,8 +588,8 @@ static void Thd_LoraSendProcess(void *argument)
 	APP_LOG(TS_OFF, VLEVEL_M, "***HUM: %d.%02d \r\n", int_hum_data, decimal_hum_data);
 
 	APP_LOG(TS_OFF, VLEVEL_M, "***STATUS REG: %04X \r\n", sensor_data_buff.status_reg);
-    osThreadFlagsWait(1, osFlagsWaitAny, osWaitForever);
-    SendTxData();  /*what you want to do*/
+	osThreadFlagsWait(1, osFlagsWaitAny, osWaitForever);
+	SendTxData();  /*what you want to do*/
   }
 
   /* USER CODE BEGIN Thd_LoraSendProcess_2 */

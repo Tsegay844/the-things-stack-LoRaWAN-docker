@@ -12,6 +12,7 @@
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Crypto/soft-se.c:866:23:SecureElementSetKey	5
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Crypto/soft-se.c:1238:23:SecureElementDeriveAndStoreKey	5
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Crypto/soft-se.c:1328:23:SecureElementProcessJoinAccept	8
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Crypto/soft-se.c:1427:23:SecureElementRandomNumber	2
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Crypto/soft-se.c:1438:23:SecureElementSetDevEui	2
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Crypto/soft-se.c:1463:23:SecureElementGetDevEui	2
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Crypto/soft-se.c:1487:23:SecureElementSetJoinEui	2

@@ -4,7 +4,7 @@
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCommands.c:181:13:LinkedListAdd	5
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCommands.c:216:22:LinkedListGetPrevious	6
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCommands.c:252:13:LinkedListRemove	6
-/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCommands.c:288:13:IsSticky	2
+/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCommands.c:288:13:IsSticky	4
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCommands.c:317:13:IsConfirmationRequired	1
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCommands.c:141:13:FreeMacCommandSlot	2
 /home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacCommands.c:332:24:LoRaMacCommandsInit	1
