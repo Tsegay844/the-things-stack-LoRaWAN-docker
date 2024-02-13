@@ -1,4 +1,0 @@
-NvmDataMgmt.c:52:6:NvmDataMgmtEvent	1
-NvmDataMgmt.c:59:10:NvmDataMgmtStore	1
-NvmDataMgmt.c:154:10:NvmDataMgmtRestore	1
-NvmDataMgmt.c:221:6:NvmDataMgmtFactoryReset	1

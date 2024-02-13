@@ -1,5 +1,0 @@
-lora_app.c:127:6:LoRaWAN_Init	1
-lora_app.c:157:13:OnRxData	3
-lora_app.c:188:13:OnTxData	5
-lora_app.c:210:13:OnJoinRequest	4
-lora_app.c:235:13:OnMacProcessNotify	1
