@@ -73,13 +73,13 @@ typedef enum
  * */
 #define MAX_LORA_DR				6  // Testbench maximum DR value from RP002-1.0.0 EU863-870 Data Rate
 #define DEFAULT_DATA_RATE		0  // Data Rate used for the synch. process
-#define DATA_RATE_OFFSET		0  // The RX DR cycle starts in DEFAULT_DATA_RATE + Offset
+#define DATA_RATE_OFFSET		3  // The RX DR cycle starts in DEFAULT_DATA_RATE + Offset
 #define MAX_TX_OUTPUT_POWER		14	/* dBm */
 #define MIN_TX_OUTPUT_POWER		6	/* dBm */
 #define DEFAULT_TX_OUTPUT_POWER		14	/* dBm */
 #define TEST_TX_POWER_STEP			2	// dBm step when changing TX power
 #define TEST_TX_PKT_INTERVAL_MS		150  // Delay added after every transmission (in ms)
-#define TEST_N_PKTS		5	// Number of packets sent every cycle (uint16_t)
+#define TEST_N_PKTS		100	// Number of packets sent every cycle (uint16_t)
 #define TB_PAYLOAD_LEN	16 	// Payload size in bytes
 #define MAX_APP_BUFFER_SIZE		255  // Maximum Payload size in bytes
 #define MAX_SYNCH_RETRIES	50  // Maximum retries when RX is trying to synchronize

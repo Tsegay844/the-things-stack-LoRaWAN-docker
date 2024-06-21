@@ -21,6 +21,7 @@
 "./Application/User/Core/usart_if.o"
 "./Application/User/LoRaWAN/App/CayenneLpp.o"
 "./Application/User/LoRaWAN/App/app_lorawan.o"
+"./Application/User/LoRaWAN/App/bmp280.o"
 "./Application/User/LoRaWAN/App/lora_app.o"
 "./Application/User/LoRaWAN/App/lora_info.o"
 "./Application/User/LoRaWAN/App/sht30.o"

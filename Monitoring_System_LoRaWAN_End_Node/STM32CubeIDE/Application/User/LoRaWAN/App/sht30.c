@@ -12,8 +12,7 @@
 
 
 #define SHT30_I2C_TIMEOUT 300
-#define SHT30_I2C_ADDR_PIN_HIGH 0x45
-// #define SHT30_I2C_ADDR_PIN_LOW 0x44
+#define SHT30_I2C_ADDR 0x44 // 0x45 for Pin High, 0x44 for Pin low
 
 // SHT30 registers addresses and commands
 typedef enum{
@@ -39,10 +38,12 @@ static uint16_t sht30_uint8_to_uint16(uint8_t msb, uint8_t lsb);
 sensor_status_t sht30_status = SENSOR_STATUS_UNINITIALIZED;
 
 // Exported HAL sensor functions
+
 sensor_status_t app_read_sensor_data(struct sensor_data_t* data_buff){
 	if (data_buff != NULL){
 		// First reading, sensor is uninitialized
 		if (sht30_status == SENSOR_STATUS_UNINITIALIZED){
+			APP_LOG(TS_OFF, VLEVEL_M, "INIT SHT30 At Addr: 0x%02X\r\n", SHT30_I2C_ADDR);
 			sht30_status = sht30_check_status_register(data_buff);
 		}
 		// Read sensor values
@@ -100,7 +101,7 @@ sensor_status_t sht30_calculate_crc(const uint8_t *data, size_t length){
  */
 sensor_status_t sht30_check_status_register(struct sensor_data_t* data_buff){
 	uint8_t buff[3];
-	if (HAL_I2C_Mem_Read(&hi2c1, SHT30_I2C_ADDR_PIN_HIGH << 1u, SHT30_COMMAND_READ_STATUS, 2, (uint8_t*)&buff,
+	if (HAL_I2C_Mem_Read(&hi2c1, SHT30_I2C_ADDR << 1u, SHT30_COMMAND_READ_STATUS, 2, (uint8_t*)&buff,
 					  sizeof(buff), SHT30_I2C_TIMEOUT) != HAL_OK) {
 		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 HAL_I2C_Mem_Read ERROR\r\n");
 		return SENSOR_STATUS_ERROR;
@@ -133,7 +134,7 @@ sensor_status_t sht30_check_status_register(struct sensor_data_t* data_buff){
 sensor_status_t sht30_send_command(sht30_command_t command){
 	uint8_t command_buff[2] = {(command & 0xff00u) >> 8u, command & 0xffu};
 
-	if (HAL_I2C_Master_Transmit(&hi2c1, SHT30_I2C_ADDR_PIN_HIGH << 1u, command_buff, sizeof(command_buff),
+	if (HAL_I2C_Master_Transmit(&hi2c1, SHT30_I2C_ADDR << 1u, command_buff, sizeof(command_buff),
 	                            SHT30_I2C_TIMEOUT) != HAL_OK) {
 		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 HAL_I2C_Master_Transmit ERROR\r\n");
 		return SENSOR_STATUS_ERROR;
@@ -156,7 +157,7 @@ sensor_status_t sht30_read_temperature_and_humidity(struct sensor_data_t* data_b
 	sht30_send_command(SHT30_COMMAND_MEASURE_SINGLE);
 	HAL_Delay(1);
 
-	if (HAL_I2C_Master_Receive(&hi2c1, SHT30_I2C_ADDR_PIN_HIGH << 1u, buff, sizeof(buff), SHT30_I2C_TIMEOUT) != HAL_OK) {
+	if (HAL_I2C_Master_Receive(&hi2c1, SHT30_I2C_ADDR << 1u, buff, sizeof(buff), SHT30_I2C_TIMEOUT) != HAL_OK) {
 		APP_LOG(TS_OFF, VLEVEL_M, "SHT30 HAL_I2C_Master_Receive ERROR\r\n");
 		return SENSOR_STATUS_ERROR;
 	}

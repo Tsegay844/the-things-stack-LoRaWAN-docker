@@ -364,16 +364,29 @@ const osThreadAttr_t Thd_LmHandlerProcess_attr =
 static void Thd_LmHandlerProcess(void *argument);
 
 /* USER CODE BEGIN PV */
+// Global Frame counter - incremented for every message transmitted
+uint16_t global_frame_ctr = 0;
 
 /**
- * SHT30 sensor data struct
+ * SHT30 sensor PV
  */
 struct sensor_data_t sensor_data_buff;
-int int_temp_data;
-int decimal_temp_data;
-int int_hum_data;
-int decimal_hum_data;
+int int_sht_T;
+int decimal_sht_T;
+int int_sht_RH;
+int decimal_sht_RH;
 
+/**
+ * BMP280 sensor PV
+ */
+BMP280_HandleTypedef bmp280;
+//float bmp_pressure, bmp_temperature, bmp_humidity;
+int int_bmp_T;
+int decimal_bmp_T;
+int int_bmp_P;
+//int decimal_bmp_P;
+//uint16_t size;
+//uint8_t Data[256];
 
 /**
   * @brief User application buffer
@@ -518,7 +531,18 @@ void LoRaWAN_Init(void)
   }
 
   /* USER CODE BEGIN LoRaWAN_Init_Last */
+  MX_I2C1_Init(); // I2C1 uses PB7(ARD_D0) for SDA, and PB8(ARD_D5) for SCK
+  // Initialize BMP280
+  bmp280_init_default_params(&bmp280.params);
+  bmp280.addr = BMP280_I2C_ADDRESS_1; // Adafruit BMP280 Defaul I2C Addr. is 0x77
+  bmp280.i2c = &hi2c1;
 
+  if (!bmp280_init(&bmp280, &bmp280.params)) {
+	  APP_LOG(TS_OFF, VLEVEL_M, "BMP280 initialization failed\n");
+  }
+  else {
+	  APP_LOG(TS_OFF, VLEVEL_M, "BMP280 ID 0x58: found %x\n", bmp280.id);
+  }
   /* USER CODE END LoRaWAN_Init_Last */
 }
 
@@ -572,22 +596,37 @@ static void Thd_LmHandlerProcess(void *argument)
 static void Thd_LoraSendProcess(void *argument)
 {
   /* USER CODE BEGIN Thd_LoraSendProcess_1 */
-
+  float bmp_pressure, bmp_temperature, bmp_humidity;
   /* USER CODE END Thd_LoraSendProcess_1 */
   UNUSED(argument);
   for (;;)
   {
-	MX_I2C1_Init();
+	MX_I2C1_Init(); // I2C1 uses PB7(ARD_D0) for SDA, and PB8(ARD_D5) for SCK
+	APP_LOG(TS_OFF, VLEVEL_M, "\n***SENSOR READINGS N. %05d \r\n", global_frame_ctr);
 	app_read_sensor_data(&sensor_data_buff);
-	int_temp_data = (int)sensor_data_buff.temp;
-	decimal_temp_data = (int)((sensor_data_buff.temp - int_temp_data) * 100);
-	APP_LOG(TS_OFF, VLEVEL_M, "***TEMP: %d.%02d \r\n", int_temp_data, decimal_temp_data);
+	int_sht_T = (int)sensor_data_buff.temp;
+	decimal_sht_T = (int)((sensor_data_buff.temp - int_sht_T) * 100);
+	APP_LOG(TS_OFF, VLEVEL_M, "***SHT30_T: %d.%02d \r\n", int_sht_T, decimal_sht_T);
 
-	int_hum_data = (int)sensor_data_buff.r_hum;
-	decimal_hum_data = (int)((sensor_data_buff.r_hum - int_hum_data) * 100);
-	APP_LOG(TS_OFF, VLEVEL_M, "***HUM: %d.%02d \r\n", int_hum_data, decimal_hum_data);
+	int_sht_RH = (int)sensor_data_buff.r_hum;
+	decimal_sht_RH = (int)((sensor_data_buff.r_hum - int_sht_RH) * 100);
+	APP_LOG(TS_OFF, VLEVEL_M, "***SHT30_RH: %d.%02d \r\n", int_sht_RH, decimal_sht_RH);
 
 	APP_LOG(TS_OFF, VLEVEL_M, "***STATUS REG: %04X \r\n", sensor_data_buff.status_reg);
+
+	if (!bmp280_read_float(&bmp280, &bmp_temperature, &bmp_pressure, &bmp_humidity)) {
+		APP_LOG(TS_OFF, VLEVEL_M, "BMP280 read_float FAILED \r\n");
+	}
+	else {
+		int_bmp_T = (int)bmp_temperature;
+		decimal_bmp_T = (int)((bmp_temperature - int_bmp_T) * 100);
+		APP_LOG(TS_OFF, VLEVEL_M, "***BMP280_T: %d.%02d \r\n", int_bmp_T, decimal_bmp_T);
+
+		int_bmp_P = (int)bmp_pressure;
+		APP_LOG(TS_OFF, VLEVEL_M, "***BMP280_P: %d \r\n", int_bmp_P);
+
+	}
+
 	osThreadFlagsWait(1, osFlagsWaitAny, osWaitForever);
 	SendTxData();  /*what you want to do*/
   }
@@ -716,60 +755,73 @@ static void SendTxData(void)
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
   uint8_t batteryLevel = GetBatteryLevel();
-  sensor_t sensor_data;
+  uint32_t i = 0;
+  //sensor_t sensor_data;
   UTIL_TIMER_Time_t nextTxIn = 0;
 
   if (LmHandlerIsBusy() == false)
   {
-#ifdef CAYENNE_LPP
-    uint8_t channel = 0;
-#else
-    uint16_t pressure = 0;
-    int16_t temperature = 0;
-    uint16_t humidity = 0;
-    uint32_t i = 0;
-    int32_t latitude = 0;
-    int32_t longitude = 0;
-    uint16_t altitudeGps = 0;
-#endif /* CAYENNE_LPP */
+//#ifdef CAYENNE_LPP
+//    uint8_t channel = 0;
+//#else
+    //uint16_t pressure = 0;
+    //int16_t temperature = 0;
+    //uint16_t humidity = 0;
+    //uint32_t i = 0;
+    //int32_t latitude = 0;
+    //int32_t longitude = 0;
+    //uint16_t altitudeGps = 0;
+//#endif /* CAYENNE_LPP */
 
-    nextTxIn = 60000; /** ADDED ADDITIONAL DELAY WHEN SEND SENSOR DATA**/
+    nextTxIn = 1800000; /** ADDED ADDITIONAL DELAY WHEN SEND SENSOR DATA**/
 
-    EnvSensors_Read(&sensor_data);
+    //EnvSensors_Read(&sensor_data);
 
     APP_LOG(TS_ON, VLEVEL_M, "VDDA: %d\r\n", batteryLevel);
-    APP_LOG(TS_ON, VLEVEL_M, "temp: %d\r\n", (int16_t)(sensor_data.temperature));
+    //APP_LOG(TS_ON, VLEVEL_M, "temp: %d\r\n", (int16_t)(sensor_data.temperature));
 
     AppData.Port = LORAWAN_USER_APP_PORT;
 
-#ifdef CAYENNE_LPP
-    CayenneLppReset();
-    CayenneLppAddBarometricPressure(channel++, sensor_data.pressure);
-    CayenneLppAddTemperature(channel++, sensor_data.temperature);
-    CayenneLppAddRelativeHumidity(channel++, (uint16_t)(sensor_data.humidity));
+//#ifdef CAYENNE_LPP
+//    CayenneLppReset();
+//    CayenneLppAddBarometricPressure(channel++, sensor_data.pressure);
+//    CayenneLppAddTemperature(channel++, sensor_data.temperature);
+//    CayenneLppAddRelativeHumidity(channel++, (uint16_t)(sensor_data.humidity));
+//
+//    if ((LmHandlerParams.ActiveRegion != LORAMAC_REGION_US915) && (LmHandlerParams.ActiveRegion != LORAMAC_REGION_AU915)
+//        && (LmHandlerParams.ActiveRegion != LORAMAC_REGION_AS923))
+//    {
+//      CayenneLppAddDigitalInput(channel++, GetBatteryLevel());
+//      CayenneLppAddDigitalOutput(channel++, AppLedStateOn);
+//    }
+//
+//    CayenneLppCopy(AppData.Buffer);
+//    AppData.BufferSize = CayenneLppGetSize();
+//#else  /* not CAYENNE_LPP */
 
-    if ((LmHandlerParams.ActiveRegion != LORAMAC_REGION_US915) && (LmHandlerParams.ActiveRegion != LORAMAC_REGION_AU915)
-        && (LmHandlerParams.ActiveRegion != LORAMAC_REGION_AS923))
-    {
-      CayenneLppAddDigitalInput(channel++, GetBatteryLevel());
-      CayenneLppAddDigitalOutput(channel++, AppLedStateOn);
-    }
+    //humidity    = (uint16_t)(sensor_data.humidity * 10);            /* in %*10     */
+    //temperature = (int16_t)(sensor_data.temperature);
+    //pressure = (uint16_t)(sensor_data.pressure * 100 / 10); /* in hPa / 10 */
 
-    CayenneLppCopy(AppData.Buffer);
-    AppData.BufferSize = CayenneLppGetSize();
-#else  /* not CAYENNE_LPP */
-    humidity    = (uint16_t)(sensor_data.humidity * 10);            /* in %*10     */
-    temperature = (int16_t)(sensor_data.temperature);
-    pressure = (uint16_t)(sensor_data.pressure * 100 / 10); /* in hPa / 10 */
-
-    AppData.Buffer[i++] = 0xc0;
+    AppData.Buffer[i++] = 0xc0; // Device app ID
     AppData.Buffer[i++] = 0xff;
     AppData.Buffer[i++] = 0xee;
+    AppData.Buffer[i++] = (uint8_t)(nextTxIn/60000); // Transmission interval in minutes
+    AppData.Buffer[i++] = (uint8_t)(global_frame_ctr >> 8);
+    AppData.Buffer[i++] = (uint8_t)global_frame_ctr;
+    global_frame_ctr++;
+    AppData.Buffer[i++] = (uint8_t)int_sht_T;
+    AppData.Buffer[i++] = (uint8_t)decimal_sht_T;
+    AppData.Buffer[i++] = (uint8_t)int_sht_RH;
+    AppData.Buffer[i++] = (uint8_t)decimal_sht_RH;
 
-    AppData.Buffer[i++] = int_temp_data;
-    AppData.Buffer[i++] = decimal_temp_data;
-    AppData.Buffer[i++] = int_hum_data;
-    AppData.Buffer[i++] = decimal_hum_data;
+    AppData.Buffer[i++] = (uint8_t)int_bmp_T;
+    AppData.Buffer[i++] = (uint8_t)decimal_bmp_T;
+
+    AppData.Buffer[i++] = (uint8_t)(int_bmp_P >> 24);
+    AppData.Buffer[i++] = (uint8_t)(int_bmp_P >> 16);
+    AppData.Buffer[i++] = (uint8_t)(int_bmp_P >> 8);
+    AppData.Buffer[i++] = (uint8_t)int_bmp_P;
 
     //AppData.Buffer[i++] = AppLedStateOn;
     //AppData.Buffer[i++] = (uint8_t)((pressure >> 8) & 0xFF);
@@ -788,8 +840,8 @@ static void SendTxData(void)
     }
     else
     {
-      latitude = sensor_data.latitude;
-      longitude = sensor_data.longitude;
+      //latitude = sensor_data.latitude;
+      //longitude = sensor_data.longitude;
 
       AppData.Buffer[i++] = GetBatteryLevel();        /* 1 (very low) to 254 (fully charged) */
       //AppData.Buffer[i++] = (uint8_t)((latitude >> 16) & 0xFF);
@@ -803,7 +855,7 @@ static void SendTxData(void)
     }
 
     AppData.BufferSize = i;
-#endif /* CAYENNE_LPP */
+//#endif /* CAYENNE_LPP */
 
     if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET))
     {
