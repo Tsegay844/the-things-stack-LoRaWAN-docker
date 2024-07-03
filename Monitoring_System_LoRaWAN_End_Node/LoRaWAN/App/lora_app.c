@@ -773,7 +773,7 @@ static void SendTxData(void)
     //uint16_t altitudeGps = 0;
 //#endif /* CAYENNE_LPP */
 
-    nextTxIn = 1800000; /** ADDED ADDITIONAL DELAY WHEN SEND SENSOR DATA**/
+    nextTxIn = 60000; /** ADDED ADDITIONAL DELAY WHEN SEND SENSOR DATA**/
 
     //EnvSensors_Read(&sensor_data);
 
@@ -803,7 +803,7 @@ static void SendTxData(void)
     //temperature = (int16_t)(sensor_data.temperature);
     //pressure = (uint16_t)(sensor_data.pressure * 100 / 10); /* in hPa / 10 */
 
-    AppData.Buffer[i++] = 0xc0; // Device app ID
+    AppData.Buffer[i++] = 0xc2; // Device app ID
     AppData.Buffer[i++] = 0xff;
     AppData.Buffer[i++] = 0xee;
     AppData.Buffer[i++] = (uint8_t)(nextTxIn/60000); // Transmission interval in minutes
