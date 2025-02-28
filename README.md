@@ -1,6 +1,6 @@
 # The Things Stack LoRaWAN Network Server
 
-![The Things Stack CE for Raspberry Pi](https://raw.githubusercontent.com/xoseperez/the-things-stack-docker/master/assets/logo_small.png)
+![The Things Stack CE for Raspberry Pi](https://raw.githubusercontent.com/Tsegay844/the-things-stack-LoRaWAN-docker/master/assets/logo_small.png)
 
 ## Introduction
 
@@ -19,7 +19,7 @@ Main features:
 
 Based on [The Things Stack](https://hub.docker.com/r/thethingsnetwork/lorawan-stack/) image.
 
-This project is available on Docker Hub (https://hub.docker.com/r/xoseperez/the-things-stack) and GitHub (https://github.com/xoseperez/the-things-stack-docker).
+This project is available on Docker Hub (https://hub.docker.com/r/xoseperez/the-things-stack) and GitHub (https://github.com/Tsegay844/the-things-stack-LoRaWAN-docker).
 
 This is a Work In Progress. It is **not meant for production environments** but it should work just fine for local (LAN) deployments.
 
@@ -164,7 +164,7 @@ While the device boots (it will eventually show up in the Balena dashboard) we w
 - Clone this repository to your local workstation. Don't forget to update the submodules.
 ```
 cd ~/workspace
-git clone https://github.com/xoseperez/the-things-stack-docker
+git clone https://github.com/Tsegay844/the-things-stack-LoRaWAN-docker
 cd the-things-stack-docker
 ```
 - Using [Balena CLI](https://www.balena.io/docs/reference/cli/), push the code with `balena push <fleet-name>`
