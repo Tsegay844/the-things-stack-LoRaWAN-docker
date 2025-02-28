@@ -99,7 +99,7 @@ services:
         - "127.0.0.1:6379:6379"
   
   stack:
-    image: xoseperez/the-things-stack
+    image: tsegay844/the-things-stack-lorawan
     container_name: stack
     restart: unless-stopped
     depends_on:
