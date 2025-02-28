@@ -65,7 +65,7 @@ VOLUME [ "/srv/data" ]
 
 # Copy scripts
 WORKDIR /home/thethings
-COPY runner/* .
+COPY runner/* ./
 RUN chmod +x start get_trust_certificate reset_certificates reset_database
 ENV PATH="${PATH}:/home/thethings"
 

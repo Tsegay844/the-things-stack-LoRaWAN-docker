@@ -15,7 +15,7 @@ ARG REMOTE_TAG
 ARG CFSSL_ARCH
 
 # Image metadata
-LABEL maintainer="Xose Pérez <xose.perez@gmail.com>"
+LABEL maintainer="Tsegay Teklay <tsegay844@gmail.com>"
 LABEL org.label-schema.schema-version="1.0"
 LABEL org.label-schema.build-date=${BUILD_DATE}
 LABEL org.label-schema.name="The Things Stack LoRaWAN Network Server"
@@ -42,7 +42,7 @@ VOLUME [ "/srv/data" ]
 
 WORKDIR /home/thethings
 
-COPY runner/* .
+COPY runner/* ./
 RUN chmod +x start get_trust_certificate reset_certificates reset_database
 ENV PATH="${PATH}:/home/thethings"
 USER thethings:thethings
