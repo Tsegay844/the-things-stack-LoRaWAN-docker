@@ -48,12 +48,12 @@ services:
       - 'stack-blob:/srv/ttn-lorawan/public/blob'
       - 'stack-data:/srv/data'
       - '/mnt/data/_data:/mnt/data/_data:ro'  # Mount the source directory as read-only
-  command: >
-    sh -c "cp /mnt/data/_data/ca-key.pem /srv/data/ &&
-           cp /mnt/data/_data/ca.pem /srv/data/ &&
-           cp /mnt/data/_data/cert.pem /srv/data/ &&
-           cp /mnt/data/_data/key.pem /srv/data/ &&
-           /path/to/original/command"
+    command: >
+     sh -c "cp /mnt/data/_data/ca-key.pem /srv/data/ &&
+         cp /mnt/data/_data/ca.pem /srv/data/ &&
+         cp /mnt/data/_data/cert.pem /srv/data/ &&
+         cp /mnt/data/_data/key.pem /srv/data/ &&
+         /path/to/original/command"
     environment:
       TTS_DOMAIN: 192.168.1.19
       TTN_LW_BLOB_LOCAL_DIRECTORY: /srv/ttn-lorawan/public/blob
