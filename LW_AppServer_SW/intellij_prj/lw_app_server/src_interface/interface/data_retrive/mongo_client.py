@@ -23,7 +23,7 @@ def save_to_mongodb(data, collection):
     Saving data into mongodb
     
     :param data: Document to be inserted
-    :param collection: Target collection in the collection
+    :param collection: Target collection from the database collections
     """
     try:
         collection.insert_one(data)
