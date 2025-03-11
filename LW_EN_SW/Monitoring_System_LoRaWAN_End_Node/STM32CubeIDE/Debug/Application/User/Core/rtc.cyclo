@@ -1,3 +1,0 @@
-/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/rtc.c:30:6:MX_RTC_Init	4
-/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/rtc.c:86:6:HAL_RTC_MspInit	3
-/home/brunocasu/Clones/nucleo-wl55jc-sensor-node/Monitoring_System_LoRaWAN_End_Node/Core/Src/rtc.c:121:6:HAL_RTC_MspDeInit	2
