@@ -7,11 +7,11 @@ assets:
   repository:
     type: blob.asset
     data:
-      url: https://github.com/xoseperez/the-things-stack-docker
+      url: https://github.com/Tsegay844/the-things-stack-LoRaWAN-docker
   logo:
     type: blob.asset
     data:
-      url: https://raw.githubusercontent.com/xoseperez/the-things-stack-docker/master/assets/logo_small.png
+      url: https://raw.githubusercontent.com/Tsegay844/the-things-stack-LoRaWAN-docker/master/assets/logo_small.png
 data:
   defaultDeviceType: raspberrypi4-64
   supportedDeviceTypes:
